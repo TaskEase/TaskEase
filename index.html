@@ -20,6 +20,12 @@
             <p class="header-tagline">Simplify Your Tasks</p>
         </div>
     </header>
+
+    <!-- Animation -->
+    <div id="animationContainer" class="animation-container">
+        <img src="animation.gif" class="animation" alt="Animation">
+    </div>
+
     <!-- Toggle button -->
     <button id="toggleMenuBtn" class="toggle-menu-btn" onclick="toggleMenu()">
         <i></i>
@@ -239,6 +245,16 @@
     <!-- JavaScript -->
     <script>
         var username;
+
+        // Wait for the DOM to be fully loaded
+        document.addEventListener("DOMContentLoaded", function() {
+            // Hide the animation after 2 seconds
+            setTimeout(function() {
+                document.getElementById("animationContainer").style.display = "none";
+                document.getElementById("loginForm").style.display = "block"; // Display the login form
+            }, 2000); // 2000 milliseconds = 2 seconds
+        });
+
 
         function toggleMenu() {
             var menu = document.getElementById("menu");
