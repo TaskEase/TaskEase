@@ -736,3 +736,23 @@ input[type="datetime-local"] {
         font-size: 14px;
     }
 }
+
+.animation-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Viewport width */
+    height: 100vh; /* Viewport height */
+    background-color: #3B93C3; /* Change the background color if needed */
+    z-index: 9999; /* Make sure it's on top of other elements */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.animation {
+    max-width: 100%; /* Ensure the GIF doesn't exceed the width of the screen */
+    max-height: 100%; /* Ensure the GIF doesn't exceed the height of the screen */
+    width: auto; /* Allow the GIF to adjust its width based on the container */
+    height: auto; /* Allow the GIF to adjust its height based on the container */
+}
