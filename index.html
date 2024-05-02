@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -247,9 +246,9 @@
         var username;
 
         // Wait for the DOM to be fully loaded
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Hide the animation after 2 seconds
-            setTimeout(function() {
+            setTimeout(function () {
                 document.getElementById("animationContainer").style.display = "none";
                 document.getElementById("loginForm").style.display = "block"; // Display the login form
             }, 2000); // 2000 milliseconds = 2 seconds
@@ -653,12 +652,12 @@
 
                 // Display a message to the user that the task is saved
                 document.getElementById('spokenTaskSavedMessage').innerText = 'Task saved successfully';
-                
+
                 // Clear input box, reset dropdown, and refresh options
                 spokenTaskDiv.innerText = '';
                 document.getElementById('notificationDateTime').value = '';
                 document.getElementById('prioritySelect').selectedIndex = 0;
-                
+
                 // Check if the taskSavedMessage element exists before attempting to modify its style
                 var taskSavedMessage = document.getElementById('taskSavedMessage');
                 if (taskSavedMessage) {
@@ -862,8 +861,20 @@
             const popup = document.getElementById('popupMessage');
             popup.textContent = message; // Set the content of the popup to the custom message
             popup.style.display = 'block';
-
+            document.body.appendChild(popup);
             // Clear existing popup loop
+
+            // Create "Okay" button
+            const okayButton = document.createElement('button');
+            okayButton.textContent = 'Okay';
+            okayButton.addEventListener('click', function () {
+                clearInterval(popupLoop); // Stop the popup loop interval
+                dismissReminder(); // Dismiss the reminder
+            });
+            popup.appendChild(okayButton); // Append the "Okay" button to the popup
+
+            // Append the popup to the body element
+            document.body.appendChild(popup);
             if (popupLoop) {
                 clearInterval(popupLoop);
             }
@@ -897,7 +908,9 @@
                     audio.play();
                 }, audio.duration * 1000);
             }
+            showPopupMessageForNotif('Your reminder is set!', section);
         }
+
 
         // Handle form submissions
         document.getElementById('notificationForm').addEventListener('submit', function (event) {
@@ -950,10 +963,16 @@
             const popup = document.getElementById('popupMessage');
             popup.style.display = 'none'; // Hide the popup
 
+            popup.parentNode.removeChild(popup);
+
+
             // Stop the audio loop if it's playing
             if (audioLoop) {
                 clearInterval(audioLoop);
             }
+            if (popupLoop) {
+        clearInterval(popupLoop);
+    }
         }
 
 
