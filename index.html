@@ -59,7 +59,7 @@
             </div>
 
             <!-- Login Form -->
-            <div id="loginForm" class="task-input" style="display: none;">
+            <div id="loginForm" class="task-input" style="display: block;">
                 <h2>Login</h2>
                 <form id="loginForm">
                     <div class="form-group">
@@ -250,7 +250,7 @@
             // Hide the animation after 2 seconds
             setTimeout(function () {
                 document.getElementById("animationContainer").style.display = "none";
-                document.getElementById("loginForm").style.display = "block"; // Display the login form
+                // document.getElementById("loginForm").style.display = "block"; // Display the login form
             }, 2000); // 2000 milliseconds = 2 seconds
         });
 
@@ -419,10 +419,6 @@
                 .catch(error => console.error('Error updating task completion:', error));
         }
 
-        window.onload = function () {
-            showLogin();
-        };
-
         // Inside the showLogin() function
         function showLogin() {
             hideAllSections();
@@ -462,43 +458,73 @@
         });
 
         function login() {
-            var loginUsername = document.getElementById('loginUsername').value.trim();
-            var loginPassword = document.getElementById('loginPassword').value.trim(); // Add this line to get the password input field
-            if (loginUsername !== '' && loginPassword !== '') {
-                fetch('https://task-ease-537o.onrender.com/tasks/login/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded' // Change content type to 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        username: loginUsername,
-                        password: loginPassword // Pass the password in the request body
-                    })
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            username = loginUsername;
-                            // Show the pop-up message after successful login
-                            showPopupMessage('Login successful!');
-                            // Hide the login form
-                            document.getElementById('loginForm').style.display = 'none';
-                            // Show the task manager section
-                            document.getElementById('taskManager').style.display = 'block';
-                            // Show collections for the current month
-                            showCollectionsForCurrentMonth();
-                        } else if (response.status === 401) {
-                            document.getElementById('loginMessage').innerText = 'Login failed. Invalid credentials.';
-                            document.getElementById('loginMessage').style.color = 'red';
-                        } else {
-                            document.getElementById('loginMessage').innerText = 'Login failed. Please try again.';
-                            document.getElementById('loginMessage').style.color = 'red';
-                        }
-                    })
-                    .catch(error => console.error('Error logging in:', error));
+    var loginUsername = document.getElementById('loginUsername').value.trim();
+    var loginPassword = document.getElementById('loginPassword').value.trim();
+    if (loginUsername !== '' && loginPassword !== '') {
+        fetch('https://task-ease-537o.onrender.com/tasks/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                username: loginUsername,
+                password: loginPassword
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                username = loginUsername;
+                // Set a cookie or local storage item to keep the user logged in
+                localStorage.setItem('loggedInUser', username); // You can use localStorage or sessionStorage
+                // Show the pop-up message after successful login
+                showPopupMessage('Login successful!');
+                // Hide the login form
+                document.getElementById('loginForm').style.display = 'none';
+                // Show the task manager section
+                document.getElementById('taskManager').style.display = 'block';
+                // Show collections for the current month
+                showCollectionsForCurrentMonth();
+            } else if (response.status === 401) {
+                document.getElementById('loginMessage').innerText = 'Login failed. Invalid credentials.';
+                document.getElementById('loginMessage').style.color = 'red';
             } else {
-                alert('Please provide both username and password');
+                document.getElementById('loginMessage').innerText = 'Login failed. Please try again.';
+                document.getElementById('loginMessage').style.color = 'red';
             }
-        }
+        })
+        .catch(error => console.error('Error logging in:', error));
+    } else {
+        alert('Please provide both username and password');
+    }
+}
+
+window.onload = function () {
+    // Check if the user is already logged in
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    if (loggedInUser) {
+        // Automatically log in the user
+        username = loggedInUser;
+        // Show the task manager section
+        document.getElementById('taskManager').style.display = 'block';
+        // Show collections for the current month
+        showCollectionsForCurrentMonth();
+        // Hide the login form from the menu
+        document.getElementById('loginForm').style.display = 'none';
+    } else {
+        // Show the login form in the menu if not logged in
+        document.getElementById('menu').style.display = 'block';
+    }
+};
+
+function logout() {
+    // Clear user session or perform logout actions
+    localStorage.removeItem('loggedInUser'); // Remove the stored user identifier
+    username = null; // Clear the username
+    hideAllSections(); // Hide all sections after logout
+    showLogin(); // Show the login form again
+    // Reload the page
+    window.location.reload();
+}
 
         function showPopupMessage(message) {
             // Create a div for the pop-up message
@@ -519,15 +545,6 @@
         function closePopupMessage() {
             // Remove the pop-up message from the DOM
             document.querySelector('.popup-message').remove();
-        }
-
-        function logout() {
-            // Clear user session or perform logout actions
-            username = null; // Clear the username
-            hideAllSections(); // Hide all sections after logout
-            showLogin(); // Show the login form again
-            // Reload the page
-            window.location.reload();
         }
 
         function showCollectionsForCurrentMonth() {
