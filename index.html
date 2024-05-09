@@ -807,23 +807,6 @@ function logout() {
                 .catch(error => console.error('Error fetching collections:', error));
         }
 
-        function displayCollections(collections) {
-            const collectionsDiv = document.getElementById('collections');
-            collectionsDiv.innerHTML = '';
-
-            collections.forEach(collection => {
-                const collectionItem = document.createElement('div');
-                collectionItem.classList.add('collection-item');
-                collectionItem.innerHTML = `
-                        <p>${collection}</p>
-                        <button type="button" class="primary-btn" onclick="viewTasks('${collection}')">View Tasks</button>                        
-                    `;
-                collectionsDiv.appendChild(collectionItem);
-            });
-
-            document.getElementById('collectionsSection').style.display = 'block';
-        }
-
         //Notifications function
 
         let audioLoop;
@@ -997,22 +980,53 @@ function logout() {
     }
         }
 
+        var selectedCollectionName = ""; // Variable to store the selected collection name
 
-        function deleteTask(taskId) {
-            fetch(`https://task-ease-537o.onrender.com/tasks/delete_task/?username=${username}&task_id=${taskId}`, {
-                method: 'DELETE'
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Task deleted successfully');
-                        // Optionally, refresh tasks after deletion
-                        fetchTasks('april');
-                    } else {
-                        console.error('Error deleting task:', response.statusText);
-                    }
-                })
-                .catch(error => console.error('Error deleting task:', error));
+function displayCollections(collections) {
+    const collectionsDiv = document.getElementById('collections');
+    collectionsDiv.innerHTML = '';
+
+    collections.forEach(collection => {
+        const collectionItem = document.createElement('div');
+        collectionItem.classList.add('collection-item');
+        collectionItem.innerHTML = `
+            <p>${collection}</p>
+            <button type="button" class="primary-btn" onclick="selectCollection('${collection}')">View Tasks</button>                        
+        `;
+        collectionsDiv.appendChild(collectionItem);
+    });
+
+    document.getElementById('collectionsSection').style.display = 'block';
+}
+
+function selectCollection(collectionName) {
+    selectedCollectionName = collectionName; // Store the selected collection name
+    viewTasks(collectionName); // Call the viewTasks function to display tasks for the selected collection
+}
+
+function deleteTask(taskId) {
+    // Use the stored selected collection name
+    fetch(`https://task-ease-537o.onrender.com/tasks/delete_task/?username=${username}&task_id=${taskId}&collection_name=${selectedCollectionName}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Failed to delete task');
         }
+    })
+    .then(data => {
+        console.log('Task deleted:', data.message);
+        // Optionally, refresh tasks after deletion
+        fetchTasks(selectedCollectionName); // Refresh tasks in the current collection
+    })
+    .catch(error => {
+        console.error('Error deleting task:', error);
+        // Handle error
+    });
+}
+
 
         function backToViewList() {
             hideAllSections();
