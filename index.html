@@ -686,6 +686,9 @@ function logout() {
         }
 
         function addTask(taskText, reminderDate, reminderTime, priority) {
+
+            var collectionName = get_collection_name();
+
             // Prepare task data
             var taskData = {
                 task_text: taskText,
@@ -696,7 +699,7 @@ function logout() {
             };
 
             // Make a POST request to the API to add the task
-            fetch(`https://task-ease-537o.onrender.com/tasks/add_task?username=${username}&collection_name=april`, {
+            fetch(`https://task-ease-537o.onrender.com/tasks/add_task?username=${username}&collection_name=${collectionName}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -728,7 +731,7 @@ function logout() {
         }
 
         function get_collection_name() {
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
             const currentDate = new Date();
             return months[currentDate.getMonth()];
         }
@@ -757,12 +760,13 @@ function logout() {
         }
 
         function chatWithAssistant() {
+            var collectionName = get_collection_name();
             const chatInput = document.getElementById('chatInput').value.trim();
             if (chatInput !== '') {
                 document.getElementById('chatLoader').style.display = 'block';
 
                 // Construct the URL with query parameters
-                const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=april`;
+                const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=${collectionName}`;
 
                 // Make a POST request to the API to chat with the chatbot
                 fetch(url, {
@@ -944,10 +948,11 @@ function logout() {
 
         // Function to fetch task by date and time
         function fetchTaskByDateTime(dateTime) {
+            var collectionName = get_collection_name();
             const reminderDate = new Date(dateTime).toISOString().split('T')[0];
             const reminderTime = new Date(dateTime).toTimeString().split(' ')[0];
 
-            fetch(`https://task-ease-537o.onrender.com/tasks/tasks/reminder/?username=${username}&collection_name=april&reminder_date=${reminderDate}&reminder_time=${reminderTime}`)
+            fetch(`https://task-ease-537o.onrender.com/tasks/tasks/reminder/?username=${username}&collection_name=${collectionName}&reminder_date=${reminderDate}&reminder_time=${reminderTime}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -1033,6 +1038,8 @@ function logout() {
         }
 
         function updateTask() {
+            var collectionName = get_collection_name();
+
             const taskId = document.getElementById('updateTaskId').value;
             const taskText = document.getElementById('updateTaskText').value.trim();
             const priority = document.getElementById('updatePriority').value;
@@ -1053,7 +1060,7 @@ function logout() {
             };
 
             // Make a PUT request to update the task
-            fetch(`https://task-ease-537o.onrender.com/tasks/update_task/${taskId}/?username=${username}&collection_name=april`, {
+            fetch(`https://task-ease-537o.onrender.com/tasks/update_task/${taskId}/?username=${username}&collection_name=${collectionName}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
