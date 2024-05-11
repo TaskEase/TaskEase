@@ -809,7 +809,9 @@
                         // Display the response from the server in the chat output area
                         // Inside the function where you display the response from the chatbot
                         document.getElementById('chatOutput').innerHTML = `<div class="chatbot-response">${data.response}</div>`;
-
+                        setTimeout(() => {
+                            document.getElementById('chatOutput').innerText = '';
+                        }, 5000);
                         // Clear the input field
                         document.getElementById('chatInput').value = '';
                     })
