@@ -93,14 +93,24 @@
                 <h2>Register</h2>
                 <form id="registerForm">
                     <div class="form-group">
-                        <input type="text" id="registerUsername" class="form-control" placeholder="Username" required>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user fa-fw"></i></span>
+                            <input type="text" id="registerUsername" class="form-control" placeholder="Username"
+                                required>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <input type="password" id="registerPassword" class="form-control" placeholder="Password"
-                            required>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock fa-fw"></i></span>
+                            <input type="password" id="registerPassword" class="form-control" placeholder="Password"
+                                required>
+                        </div>
                     </div>
                     <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope fa-fw"></i></span>
                         <input type="email" id="registerEmail" class="form-control" placeholder="Email" required>
+                    </div>
                     </div>
                     <button type="button" class="secondary-btn" onclick="registerUser()">Register</button>
                     <div id="registerMessage"></div>
@@ -812,6 +822,7 @@
                         setTimeout(() => {
                             document.getElementById('chatOutput').innerText = '';
                         }, 5000);
+
                         // Clear the input field
                         document.getElementById('chatInput').value = '';
                     })
@@ -890,8 +901,8 @@
                     showPopupMessageForNotif(notificationMessage); // Show the popup message
                 }, timeDifference);
                 setTimeout(() => {
-                        document.getElementById('reminderMessage').innerText = '';
-                    }, 3000);
+                    document.getElementById('reminderMessage').innerText = '';
+                }, 3000);
             } else {
                 alert('Please select a future date and time for the notification.');
             }
@@ -951,8 +962,8 @@
             }
             showPopupMessageForNotif('Your reminder is set!', section);
             setTimeout(() => {
-                        document.getElementById('reminderMessage').innerText = '';
-                    }, 3000);
+                document.getElementById('reminderMessage').innerText = '';
+            }, 3000);
         }
 
 
