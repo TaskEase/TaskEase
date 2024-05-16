@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.jpg" type="image/jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-q39IlWmLb9S2uz1cnbshO4YOM3UzXjeRg4fAFC6CEmJatGzDY7Smjp/n8gE2eovwwKQTxuxA/owDG0mWyK5THw==" crossorigin="anonymous" />
 </head>
 
 <body>
@@ -31,6 +33,12 @@
         <i></i>
         <i></i>
     </button>
+
+    <!-- Display Mode Toggle -->
+    <div id="displayModeToggle" class="display-mode-toggle">
+        <span id="lightMode" onclick="setLightMode()"><i class="fas fa-sun"></i></span>
+        <span id="darkMode" onclick="setDarkMode()"><i class="fas fa-moon"></i></span>
+    </div>
 
 
     <!-- Side Menu -->
@@ -109,7 +117,7 @@
                     <div class="form-group">
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope fa-fw"></i></span>
-                            <input type="email" id="registerEmail" class="form-control" placeholder="user@gmail.com" required>
+                            <input type="email" id="registerEmail" class="form-control" placeholder="Email" required>
                         </div>
                     </div>
                     <button type="button" class="secondary-btn" onclick="registerUser()">Register</button>
@@ -292,6 +300,29 @@
                 closeMenu();
             }
         });
+
+        // Function to set light mode
+function setLightMode() {
+    document.body.classList.remove("dark-mode");
+    localStorage.setItem("mode", "light");
+}
+
+// Function to set dark mode
+function setDarkMode() {
+    document.body.classList.add("dark-mode");
+    localStorage.setItem("mode", "dark");
+}
+
+// Check the mode from local storage
+let mode = localStorage.getItem("mode");
+
+// Apply the mode
+if (mode === "dark") {
+    setDarkMode();
+} else {
+    setLightMode();
+}
+
 
         function toggleMenu() {
             var menu = document.getElementById("menu");
