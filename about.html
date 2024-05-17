@@ -10,8 +10,6 @@
     <link rel="icon" href="logo.jpg" type="image/jpg">
 </head>
 
-
-
 <body>
     <!-- Header -->
     <header class="header">
@@ -24,7 +22,7 @@
     <!-- Main Content -->
     <div id="content" class="content">
         <div class="container">
-            <a href="index.html" code style="text-decoration:none"><span style='font-size:30px;'>&#8592;</span></a>
+            <a href="index.html" style="text-decoration:none"><span style='font-size:30px;'>&#8592;</span></a>
             <main>
                 <section class="overview">
                     <h2>Overview</h2>
@@ -39,7 +37,6 @@
                         <li>Intuitive task creation and management</li>
                         <li>Speech-to-text functionality for hands-free task entry</li>
                         <li>Integrated chat for seamless communication</li>
-                       
                     </ul>
                 </section>
 
@@ -54,15 +51,20 @@
                     </div>
                 </section>
             </main>
-
         </div>
     </div>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
         }
 
         main {
@@ -77,6 +79,13 @@
             border-radius: 5px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .overview,
+        body.dark-mode .features,
+        body.dark-mode .tutorial {
+            background-color: #1e1e1e;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         .video-container {
@@ -121,7 +130,6 @@
             color: #fff;
         }
 
-
         @media only screen and (max-width: 600px) {
             main {
                 padding: 10px;
@@ -129,7 +137,27 @@
         }
     </style>
 
+    <script>
+        function setLightMode() {
+            document.body.classList.remove("dark-mode");
+            localStorage.setItem("mode", "light");
+        }
 
+        function setDarkMode() {
+            document.body.classList.add("dark-mode");
+            localStorage.setItem("mode", "dark");
+        }
+
+        // Check the mode from local storage
+        let mode = localStorage.getItem("mode");
+
+        // Apply the mode
+        if (mode === "dark") {
+            setDarkMode();
+        } else {
+            setLightMode();
+        }
+    </script>
 </body>
 
 </html>
