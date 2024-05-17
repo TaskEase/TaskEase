@@ -1018,3 +1018,232 @@ body.dark-mode .select-priority {
     transform: scale(1.2);
 }
 
+/* --- Dark Mode Styles for Login --- */
+
+body.dark-mode .login-container {
+    background-color: #2c3e50;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    color: #3a3a3a;
+}
+
+body.dark-mode .login-container h2 {
+    color: #3a3a3a;
+}
+
+body.dark-mode .login-container input[type="text"],
+body.dark-mode .login-container input[type="password"] {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    color: #3a3a3a;
+}
+
+body.dark-mode .login-container input[type="text"]::placeholder,
+body.dark-mode .login-container input[type="password"]::placeholder {
+    color: #3a3a3a;
+}
+
+body.dark-mode .login-container button {
+    background-color: #3498db;
+    color: #3a3a3a;
+}
+
+body.dark-mode .login-container button:hover {
+    background-color: #2980b9;
+}
+
+/* --- Dark Mode Styles for Chat Placeholder --- */
+
+body.dark-mode .chat-section input[type="text"]::placeholder {
+    color: #3a3a3a;
+}
+
+/* --- Dark Mode Styles for Priority Select --- */
+
+body.dark-mode .priority-container label {
+    color: #fff;
+}
+
+body.dark-mode #prioritySelect {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    color: #fff;
+}
+
+body.dark-mode #prioritySelect option {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+
+/* --- Dark Mode Styles for Back to View List Button --- */
+
+body.dark-mode .back-to-view-list-btn {
+    background-color: #3498db;
+    color: #fff;
+}
+
+body.dark-mode .back-to-view-list-btn:hover {
+    background-color: #2980b9;
+}
+
+/* --- Dark Mode Styles for Sort Button --- */
+
+body.dark-mode .sort-btn {
+    background-color: #9b59b6;
+    color: #fff;
+}
+
+body.dark-mode .sort-btn:hover {
+    background-color: #8e44ad;
+}
+
+/* --- Dark Mode Styles for Back Button --- */
+
+body.dark-mode .back-btn {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+body.dark-mode .back-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Apply dark mode styles to custom buttons */
+body.dark-mode .primary-btn {
+    background-color: #3498db;
+    color: #fff;
+}
+
+body.dark-mode .primary-btn:hover {
+    background-color: #2980b9;
+}
+
+body.dark-mode .secondary-btn {
+    background-color: #2ecc71;
+    color: #fff;
+}
+
+body.dark-mode .secondary-btn:hover {
+    background-color: #27ae60;
+}
+
+body.dark-mode .danger-btn {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+body.dark-mode .danger-btn:hover {
+    background-color: #c0392b;
+}
+
+body.dark-mode .success-btn {
+    background-color: #f39c12;
+    color: #fff;
+}
+
+body.dark-mode .success-btn:hover {
+    background-color: #d35400;
+}
+
+body.dark-mode .info-btn {
+    background-color: #9b59b6;
+    color: #fff;
+}
+
+body.dark-mode .info-btn:hover {
+    background-color: #8e44ad;
+}
+
+body.dark-mode .warning-btn {
+    background-color: #f1c40f;
+    color: #fff;
+}
+
+body.dark-mode .warning-btn:hover {
+    background-color: #f39c12;
+}
+
+/* Dark Mode Styles for Sort Button */
+body.dark-mode .sort-btn {
+    background-color: #2c3e50;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .sort-btn:hover {
+    background-color: #34495e;
+    color: #fff;
+}
+
+/* Dark Mode Styles for Login Input Placeholder */
+body.dark-mode .login-input::placeholder {
+    color: #aaa;
+}
+
+/* Dark Mode Styles for Chat Input Placeholder */
+body.dark-mode .chat-input::placeholder {
+    color: #aaa;
+}
+
+/* Dark Mode Styles for Task Priority Select */
+body.dark-mode .select-priority {
+    border: 1px solid #555;
+    background-color: #2c3e50;
+    color: #fff;
+}
+
+body.dark-mode .select-priority option {
+    background-color: #2c3e50;
+    color: #fff;
+}
+
+/* Dark Mode Styles for Back to View List Button */
+body.dark-mode .back-to-view-btn {
+    background-color: #2c3e50;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .back-to-view-btn:hover {
+    background-color: #34495e;
+    color: #fff;
+}
+
+/* Dark Mode Styles for Sort Button */
+body.dark-mode .sort-btn {
+    background-color: #2c3e50;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .sort-btn:hover {
+    background-color: #34495e;
+    color: #fff;
+}
+
+/* Dark Mode Styles for Back Button */
+body.dark-mode .back-btn {
+    background-color: #2c3e50;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .back-btn:hover {
+    background-color: #34495e;
+    color: #fff;
+}
