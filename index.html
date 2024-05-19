@@ -9,9 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.jpg" type="image/jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-        integrity="sha512-q39IlWmLb9S2uz1cnbshO4YOM3UzXjeRg4fAFC6CEmJatGzDY7Smjp/n8gE2eovwwKQTxuxA/owDG0mWyK5THw=="
-        crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -35,13 +33,6 @@
         <i></i>
     </button>
 
-    <!-- Display Mode Toggle -->
-    <div id="displayModeToggle" class="display-mode-toggle">
-        <span id="lightMode" onclick="setLightMode()"><i class="fas fa-sun"></i></span>
-        <span id="darkMode" onclick="setDarkMode()"><i class="fas fa-moon"></i></span>
-    </div>
-    
-
     <!-- Side Menu -->
     <div id="menu" class="menu">
         <br><br>
@@ -50,11 +41,11 @@
             <li><a href="#" onclick="showProfile(); closeMenu()"><i class="fas fa-user"></i> Your Profile</a></li>
             <li><a href="#" onclick="showLogin(); closeMenu()"><i class="fas fa-sign-in-alt"></i> Login</a></li>
             <li><a href="#" onclick="showRegister(); closeMenu()"><i class="fas fa-user-plus"></i> Register</a></li>
-            <li><a href="#" onclick="showSpeechToText(); closeMenu()"><i class="fas fa-microphone-alt"></i> Speak Your
-                    Task</a></li>
+            <li><a href="#" onclick="showSpeechToText(); closeMenu()"><i class="fas fa-microphone-alt"></i> Speak Your Task</a></li>
             <li><a href="#" onclick="viewCollections(); closeMenu()"><i class="fas fa-tasks"></i> View Tasks</a></li>
             <li><a href="#" onclick="showChat(); closeMenu()"><i class="fas fa-comments"></i> Chat</a></li>
             <li><a href="about.html"><i class="fas fa-info-circle"></i> About TaskEase</a></li>
+            <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
             <li><a href="#" onclick="logout(); closeMenu()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
@@ -278,6 +269,44 @@
     <!-- Popup message  -->
     <div class="popup" id="popupMessage">This is your notification!</div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to set light mode
+            function setLightMode() {
+                document.body.classList.remove("dark-mode");
+                var lightThemeColor = localStorage.getItem("lightThemeColor") || "#ffffff";
+                document.body.style.backgroundColor = lightThemeColor;
+            }
+
+            // Function to set dark mode
+            function setDarkMode() {
+                document.body.classList.add("dark-mode");
+                var darkThemeColor = localStorage.getItem("darkThemeColor") || "#1e1e1e";
+                document.body.style.backgroundColor = darkThemeColor;
+            }
+
+            // Retrieve and apply the mode from local storage
+            var mode = localStorage.getItem("mode");
+
+            if (mode === "dark") {
+                setDarkMode();
+            } else {
+                setLightMode();
+            }
+
+            // Retrieve and apply font settings from local storage
+            var storedFontFamily = localStorage.getItem("fontFamily");
+            if (storedFontFamily) {
+                document.body.style.fontFamily = storedFontFamily;
+            }
+
+            var storedFontSize = localStorage.getItem("fontSize");
+            if (storedFontSize) {
+                document.body.style.fontSize = storedFontSize;
+            }
+        });
+    </script>
+
     <!-- JavaScript -->
     <script>
         var username;
@@ -303,29 +332,6 @@
             }
         });
 
-        // Function to set light mode
-        function setLightMode() {
-            document.body.classList.remove("dark-mode");
-            localStorage.setItem("mode", "light");
-        }
-
-        // Function to set dark mode
-        function setDarkMode() {
-            document.body.classList.add("dark-mode");
-            localStorage.setItem("mode", "dark");
-        }
-
-        // Check the mode from local storage
-        let mode = localStorage.getItem("mode");
-
-        // Apply the mode
-        if (mode === "dark") {
-            setDarkMode();
-        } else {
-            setLightMode();
-        }
-
-
         function toggleMenu() {
             var menu = document.getElementById("menu");
             menu.classList.toggle("menu-opened");
@@ -344,10 +350,237 @@
 
         function showProfile() {
             hideAllSections(); // Hide all other sections
-            // Display username and profile picture
+            // Display username, profile picture, and task count for the current month
             const profileSection = document.getElementById('profileSection');
-            profileSection.innerHTML = `<img src="profile_picture.jpg" alt="Profile Picture"><h2>${username}</h2>`;
+            profileSection.innerHTML = `
+            <div class="user-info">
+            <img src="profile_picture.jpg" alt="Profile Picture">
+            <h2>${username}</h2>
+        </div>
+        <div class="task-container">
+            <div id="taskCount">Loading...</div>
+            <div id="completedTaskCount">Loading...</div>
+            <div id="incompleteTaskCount">Loading...</div>
+            <div class="chart-container">
+                <canvas id="taskPieChart"></canvas>
+            </div>
+        </div>
+    `;
             profileSection.style.display = 'block'; // Show the profile section
+            fetchTaskCountForCurrentMonth();
+            fetchCompletedTaskCount();
+            fetchIncompleteTaskCount();
+            fetchTaskStats();
+        }
+
+
+        // total number of tasks
+        function fetchTaskCountForCurrentMonth() {
+            const collectionName = get_collection_name();
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const taskCount = data.tasks.length;
+                    const taskCountElement = document.getElementById('taskCount');
+                    taskCountElement.innerText = `Total tasks for ${collectionName}: ${taskCount}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching tasks:', error);
+                    const taskCountElement = document.getElementById('taskCount');
+                    taskCountElement.innerText = `Error fetching tasks`;
+                });
+        }
+
+
+        
+        // tasks completed
+        function fetchCompletedTaskCount() {
+            const collectionName = get_collection_name();
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const completedTaskCount = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
+                    const completedTaskCountElement = document.getElementById('completedTaskCount');
+                    completedTaskCountElement.innerText = `Completed Tasks: ${completedTaskCount}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching completed tasks:', error);
+                    const completedTaskCountElement = document.getElementById('completedTaskCount');
+                    completedTaskCountElement.innerText = `Error fetching completed tasks`;
+                });
+        }
+
+
+
+        // Incomplete tasks
+        function fetchIncompleteTaskCount() {
+            const collectionName = get_collection_name();
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const incompleteTaskCount = data.tasks.filter(task => !task.completed && localStorage.getItem(`task_${task.task_id}_checked`) !== 'true').length;
+                    const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
+                    incompleteTaskCountElement.innerText = `Incomplete Tasks: ${incompleteTaskCount}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching incomplete tasks:', error);
+                    const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
+                    incompleteTaskCountElement.innerText = `Error fetching incomplete tasks`;
+                });
+        }
+
+
+
+        // Pie chart
+        function fetchTaskStats() {
+            const collectionName = get_collection_name();
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const totalTasks = data.tasks.length;
+                    const completedTasks = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
+                    const incompleteTasks = totalTasks - completedTasks;
+
+                    const completedPercentage = (completedTasks / totalTasks * 100).toFixed(2);
+                    const incompletePercentage = (incompleteTasks / totalTasks * 100).toFixed(2);
+
+                    document.getElementById('completedTaskCount').innerText = `Completed Tasks: ${completedTasks} (${completedPercentage}%)`;
+                    document.getElementById('incompleteTaskCount').innerText = `Incomplete Tasks: ${incompleteTasks} (${incompletePercentage}%)`;
+
+                    displayPieChart(completedTasks, incompleteTasks);
+                })
+                .catch(error => {
+                    console.error('Error fetching tasks:', error);
+                    document.getElementById('taskCount').innerText = 'Error fetching tasks';
+                });
+        }
+
+
+        function displayPieChart(completedTasks, incompleteTasks) {
+            const ctx = document.getElementById('taskPieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Completed Tasks', 'Incomplete Tasks'],
+                    datasets: [{
+                        data: [completedTasks, incompleteTasks],
+                        backgroundColor: ['#65B741', '#E72929'],
+                        hoverBackgroundColor: ['#65B741', '#E72929'],
+                        borderWidth: 0 // Remove the white border
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                boxWidth: 12, // Adjust the size of the squares
+                                boxHeight: 12 // Ensure the height matches the width for squares
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+function displayTasks(tasks) {
+            const tasksDiv = document.getElementById('tasks');
+            tasksDiv.innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item');
+
+                const taskContent = document.createElement('div');
+                taskContent.classList.add('task-content');
+                taskContent.innerHTML = `
+                    <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
+                    <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''}>
+                `;
+
+                const detailsDiv = document.createElement('div');
+                detailsDiv.classList.add('task-details');
+                detailsDiv.innerHTML = `
+                    <p><strong>Priority:</strong> ${task.priority}</p>
+                    <p><strong>Date:</strong> ${task.date}</p>
+                    <p><strong>Time:</strong> ${task.time}</p>
+                    <p><strong>Reminder Date:</strong> ${task.reminder_date}</p>
+                    <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
+                    <p><strong>CreatedAt:</strong> ${task.created_at}</p>
+                `;
+                detailsDiv.style.display = 'none';
+
+                const priorityDiv = document.createElement('div');
+                priorityDiv.classList.add('priority');
+                priorityDiv.textContent = task.priority;
+
+                const checkbox = taskContent.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function () {
+                    const taskId = this.dataset.taskId;
+                    const completed = this.checked;
+                    localStorage.setItem(`task_${taskId}_checked`, completed);
+                    if (completed) {
+                        taskContent.querySelector('.task-text').classList.add('completed');
+                    } else {
+                        taskContent.querySelector('.task-text').classList.remove('completed');
+                    }
+                    updateTaskCompletion(taskId, completed);
+                    fetchCompletedTaskCount(); // Update the completed task count
+                    fetchIncompleteTaskCount(); // Update the incomplete task count
+                });
+
+                taskItem.appendChild(taskContent);
+                taskItem.appendChild(detailsDiv);
+                taskItem.appendChild(priorityDiv); // Append the priority div
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.classList.add('task-buttons');
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    deleteTask(task.task_id);
+                });
+                buttonsDiv.appendChild(deleteButton);
+
+                const updateButton = document.createElement('button');
+                updateButton.textContent = 'Update';
+                updateButton.classList.add('secondary-btn');
+                updateButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    showUpdateForm(task.task_id, task.task_text, task.priority, task.date, task.time, task.reminder_date, task.reminder_time);
+                });
+                buttonsDiv.appendChild(updateButton);
+
+                taskItem.appendChild(buttonsDiv);
+
+                taskItem.addEventListener('click', function (event) {
+                    if (event.target.type !== 'checkbox') {
+                        const details = taskItem.querySelector('.task-details');
+                        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+
+                tasksDiv.appendChild(taskItem);
+            });
+
+            document.getElementById('tasksSection').style.display = 'block';
         }
 
         function fetchTasks(collectionName) {
@@ -408,91 +641,6 @@
         function getTaskCreatedAt(taskElement) {
             return taskElement.getAttribute('created_at');
         }
-
-
-        function displayTasks(tasks) {
-            const tasksDiv = document.getElementById('tasks');
-            tasksDiv.innerHTML = '';
-
-            tasks.forEach(task => {
-                const taskItem = document.createElement('div');
-                taskItem.classList.add('task-item');
-
-                const taskContent = document.createElement('div');
-                taskContent.classList.add('task-content');
-                taskContent.innerHTML = `
-                    <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
-                    <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''}>
-                `;
-
-                const detailsDiv = document.createElement('div');
-                detailsDiv.classList.add('task-details');
-                detailsDiv.innerHTML = `
-                    <p><strong>Priority:</strong> ${task.priority}</p>
-                    <p><strong>Date:</strong> ${task.date}</p>
-                    <p><strong>Time:</strong> ${task.time}</p>
-                    <p><strong>Reminder Date:</strong> ${task.reminder_date}</p>
-                    <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
-                    <p><strong>CreatedAt:</strong> ${task.created_at}</p>
-                `;
-                detailsDiv.style.display = 'none';
-
-                const priorityDiv = document.createElement('div');
-                priorityDiv.classList.add('priority');
-                priorityDiv.textContent = task.priority;
-
-                const checkbox = taskContent.querySelector('input[type="checkbox"]');
-                checkbox.addEventListener('change', function () {
-                    const taskId = this.dataset.taskId;
-                    const completed = this.checked;
-                    localStorage.setItem(`task_${taskId}_checked`, completed);
-                    if (completed) {
-                        taskContent.querySelector('.task-text').classList.add('completed');
-                    } else {
-                        taskContent.querySelector('.task-text').classList.remove('completed');
-                    }
-                });
-
-                taskItem.appendChild(taskContent);
-                taskItem.appendChild(detailsDiv);
-                taskItem.appendChild(priorityDiv); // Append the priority div
-
-                const buttonsDiv = document.createElement('div');
-                buttonsDiv.classList.add('task-buttons');
-
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                    deleteTask(task.task_id);
-                });
-                buttonsDiv.appendChild(deleteButton);
-
-                const updateButton = document.createElement('button');
-                updateButton.textContent = 'Update';
-                updateButton.classList.add('secondary-btn');
-                updateButton.addEventListener('click', function (event) {
-                    event.stopPropagation();
-                    showUpdateForm(task.task_id, task.task_text, task.priority, task.date, task.time, task.reminder_date, task.reminder_time);
-                });
-                buttonsDiv.appendChild(updateButton);
-
-                taskItem.appendChild(buttonsDiv);
-
-                taskItem.addEventListener('click', function (event) {
-                    if (event.target.type !== 'checkbox') {
-                        const details = taskItem.querySelector('.task-details');
-                        details.style.display = details.style.display === 'none' ? 'block' : 'none';
-                    }
-                });
-
-                tasksDiv.appendChild(taskItem);
-            });
-
-            document.getElementById('tasksSection').style.display = 'block';
-        }
-
-
 
         function updateTaskCompletion(taskId, completed) {
             fetch('mongodb+srv://taskease:102938@cluster0.kavkfm1.mongodb.net/', {
@@ -867,132 +1015,257 @@
             }
         });
 
-        //CHAT WINDOW
-        let tempTaskText = ""; // Variable to store temporary task text
-        let tempResponse = ""; // Variable to store temporary response
 
-        function chatWithAssistant() {
-            // Clear previous chat output and related elements
-            document.getElementById('chatOutput').innerHTML = ''; // Clear chat output
-            document.getElementById('reminderInput').style.display = 'none'; // Hide reminder input
-            const viewTasksButton = document.getElementById('viewTasksButton');
-            if (viewTasksButton) {
-                viewTasksButton.remove(); // Remove view tasks button if exists
-            }
+// Function to fetch tasks for chat and display them
+function fetchTasksForChat(collectionName) {
+    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+        method: 'GET'
+    })
+    .then(response => response.json())
+    .then(data => {
+        displayTasksinchat(data.tasks);
+        
+        // Clear tasks in chat after 20 seconds
+        setTimeout(() => {
+            const chatOutput = document.getElementById('chatOutput');
+            chatOutput.innerHTML = '';
+        }, 20000);
+    })
+    .catch(error => console.error('Error fetching tasks:', error));
+}
 
-            var collectionName = get_collection_name();
-            const chatInput = document.getElementById('chatInput').value.trim();
-            if (chatInput !== '') {
-                document.getElementById('chatLoader').style.display = 'block';
+// Function to display tasks in the chat output
+function displayTasksinchat(tasks) {
+            const tasksDiv = document.getElementById('tasks');
+            tasksDiv.innerHTML = '';
 
-                // Check if the input starts with "add task" and remove it if present
-                const taskDescription = chatInput.toLowerCase().startsWith('add task') ? chatInput.slice(9).trim() : chatInput;
+            tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item');
 
-                // Construct the URL with query parameters
-                const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=${collectionName}`;
+                const taskContent = document.createElement('div');
+                taskContent.classList.add('task-content');
+                taskContent.innerHTML = `
+                    <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
+                    <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''}>
+                `;
 
-                // Make a POST request to the API to chat with the chatbot
-                fetch(url, {
-                    method: 'POST'
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Store temporary task text and response
-                        tempTaskText = taskDescription; // Store only the task description
-                        tempResponse = data.response;
+                const detailsDiv = document.createElement('div');
+                detailsDiv.classList.add('task-details');
+                detailsDiv.innerHTML = `
+                    <p><strong>Priority:</strong> ${task.priority}</p>
+                    <p><strong>Date:</strong> ${task.date}</p>
+                    <p><strong>Time:</strong> ${task.time}</p>
+                    <p><strong>Reminder Date:</strong> ${task.reminder_date}</p>
+                    <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
+                    <p><strong>CreatedAt:</strong> ${task.created_at}</p>
+                `;
+                detailsDiv.style.display = 'none';
 
-                        // Display the response from the server in the chat output area
-                        document.getElementById('chatOutput').innerHTML = `<div class="chatbot-response">${data.response}</div>`;
-                        setTimeout(() => {
-                            document.getElementById('chatOutput').innerText = '';
-                        }, 30000);
+                const priorityDiv = document.createElement('div');
+                priorityDiv.classList.add('priority');
+                priorityDiv.textContent = task.priority;
 
-                        if (
-                            tempResponse.trim().toLowerCase() === "to view all tasks, just send a message like 'view tasks' or 'display tasks' to taskease. the other way is to choose particular month for viewing tasks by clicking below button available." ||
-                            tempResponse.trim().toLowerCase() === "to update a task, send a message like 'update task [task id] to [new description]' to taskease. the other way is to update manually in your view tasks of respective month by clicking below button available." ||
-                            tempResponse.trim().toLowerCase() === "to delete a task, simply message 'delete task [task id]' to taskease. the other way is to delete manually in your view tasks of respective month by clicking below button available."
-                        ) {
-                            // Show button to view tasks
-                            const viewTasksButton = document.createElement('button');
-                            viewTasksButton.textContent = 'View Tasks';
-                            viewTasksButton.className = 'view-tasks-button'; // Add the CSS class
-                            viewTasksButton.id = 'viewTasksButton'; // Add an ID
-                            viewTasksButton.addEventListener('click', () => {
-                                fetchTasks(collectionName);
-                            });
-                            document.getElementById('chatOutput').appendChild(viewTasksButton);
-                        }
+                const checkbox = taskContent.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function () {
+                    const taskId = this.dataset.taskId;
+                    const completed = this.checked;
+                    localStorage.setItem(`task_${taskId}_checked`, completed);
+                    if (completed) {
+                        taskContent.querySelector('.task-text').classList.add('completed');
+                    } else {
+                        taskContent.querySelector('.task-text').classList.remove('completed');
+                    }
+                });
 
-                        if (tempResponse.trim().toLowerCase() === "please provide reminder date and time.") {
-                            // Show calendar to set reminder date and time
-                            console.log("Attempting to show calendar...");
-                            showCalendar();
-                        }
+                taskItem.appendChild(taskContent);
+                taskItem.appendChild(detailsDiv);
+                taskItem.appendChild(priorityDiv); // Append the priority div
 
-                        // Clear the input field
-                        document.getElementById('chatInput').value = '';
-                    })
-                    .catch(error => {
-                        console.error('Error chatting with assistant:', error);
-                    })
-                    .finally(() => {
-                        // Hide the loading indicator after the request completes
-                        document.getElementById('chatLoader').style.display = 'none';
-                    });
-            }
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.classList.add('task-buttons');
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    deleteTask(task.task_id);
+                });
+                buttonsDiv.appendChild(deleteButton);
+
+                const updateButton = document.createElement('button');
+                updateButton.textContent = 'Update';
+                updateButton.classList.add('secondary-btn');
+                updateButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    showUpdateForm(task.task_id, task.task_text, task.priority, task.date, task.time, task.reminder_date, task.reminder_time);
+                });
+                buttonsDiv.appendChild(updateButton);
+
+                taskItem.appendChild(buttonsDiv);
+
+                taskItem.addEventListener('click', function (event) {
+                    if (event.target.type !== 'checkbox') {
+                        const details = taskItem.querySelector('.task-details');
+                        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+
+                tasksDiv.appendChild(taskItem);
+            });
+
+            document.getElementById('tasksSection').style.display = 'block';
         }
 
 
-        function showCalendar() {
-            const reminderInput = document.getElementById('reminderInput');
-            reminderInput.style.display = 'block';
-        }
 
-        function closeCalendar() {
-            // Close the calendar modal
-            document.getElementById('calendarModal').style.display = 'none';
-        }
+// Function to format task for chat display
+function formatTaskForChat(task) {
+    // You can customize the format here based on your requirements
+    return `Task: ${task.task_text}, Priority: ${task.priority}, Date: ${task.date}, Time: ${task.time}`;
+}
 
-        function setReminder() {
-            // Get the selected reminder date and time
-            const reminderDate = document.getElementById('reminderDate').value;
-            const reminderTime = document.getElementById('reminderTime').value;
+// CHAT WINDOW
+let tempTaskText = ""; // Variable to store temporary task text
+let tempResponse = ""; // Variable to store temporary response
 
-            // Call the addTask function with temporary task text, reminder date, reminder time, and default priority
-            addTask(tempTaskText, reminderDate, reminderTime, "Medium");
+// Function to handle chat interaction
+function chatWithAssistant() {
+    // Clear previous chat output and related elements
+    document.getElementById('chatOutput').innerHTML = ''; // Clear chat output
+    document.getElementById('reminderInput').style.display = 'none'; // Hide reminder input
+    const viewTasksButton = document.getElementById('viewTasksButton');
+    if (viewTasksButton) {
+        viewTasksButton.remove(); // Remove view tasks button if exists
+    }
 
-            // Print "Task added successfully" message below the "Set Reminder" button
-            const reminderInput = document.getElementById('reminderInput');
-            const successMessage = document.createElement('div');
-            successMessage.classList.add('chatbot-response');
-            successMessage.textContent = 'Task added successfully';
-            reminderInput.appendChild(successMessage);
+    var collectionName = get_collection_name();
+    const chatInput = document.getElementById('chatInput').value.trim();
+    if (chatInput !== '') {
+        document.getElementById('chatLoader').style.display = 'block';
 
-            // Set notification for the reminder
-            const notificationDateTime = `${reminderDate}T${reminderTime}`;
-            setChatNotification(tempTaskText, notificationDateTime);
+        // Check if the input starts with "add task" and remove it if present
+        const taskDescription = chatInput.toLowerCase().startsWith('add task') ? chatInput.slice(9).trim() : chatInput;
 
-            // Close the calendar modal after setting the reminder
-            closeCalendar();
-        }
+        // Construct the URL with query parameters
+        const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=${collectionName}`;
 
-        function setChatNotification(taskText, notificationDateTime) {
-            const notificationTime = new Date(notificationDateTime).getTime();
-            const currentTime = new Date().getTime();
-            const timeDiff = notificationTime - currentTime;
-            const iconUrl = 'logo.jpg';
+        // Make a POST request to the API to chat with the chatbot
+        fetch(url, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Store temporary task text and response
+            tempTaskText = taskDescription; // Store only the task description
+            tempResponse = data.response;
 
-            if (timeDiff > 0) {
-                setTimeout(function () {
-                    createNotification('Task Reminder', taskText, 'logo.jpg');
-                }, timeDiff);
-            } else {
-                document.getElementById('reminderMessage').textContent = 'Your reminder is set!';
+            // Display the response from the server in the chat output area
+            const chatOutput = document.getElementById('chatOutput');
+            chatOutput.innerHTML = `<div class="chatbot-response">${data.response}</div>`;
+            
+            // Clear chat output after 20 seconds
+            setTimeout(() => {
+                chatOutput.innerHTML = '';
+            }, 20000);
+
+            if (
+                tempResponse.trim().toLowerCase() === "to view all tasks, just send a message like 'view tasks' or 'display tasks' to taskease. the other way is to choose particular month for viewing tasks by clicking below button available." ||
+                tempResponse.trim().toLowerCase() === "to update a task, send a message like 'update task [task id] to [new description]' to taskease. the other way is to update manually in your view tasks of respective month by clicking below button available." ||
+                tempResponse.trim().toLowerCase() === "to delete a task, simply message 'delete task [task id]' to taskease. the other way is to delete manually in your view tasks of respective month by clicking below button available."
+            ) {
+                // Show button to view tasks
+                const viewTasksButton = document.createElement('button');
+                viewTasksButton.textContent = 'View Tasks';
+                viewTasksButton.className = 'view-tasks-button'; // Add the CSS class
+                viewTasksButton.id = 'viewTasksButton'; // Add an ID
+                viewTasksButton.addEventListener('click', () => {
+                    fetchTasksForChat(collectionName);
+                });
+                chatOutput.appendChild(viewTasksButton);
+
+                // Clear view tasks button after 20 seconds
                 setTimeout(() => {
-                    document.getElementById('reminderMessage').innerText = '';
-                }, 3000);
+                    if (viewTasksButton) {
+                        viewTasksButton.remove();
+                    }
+                }, 20000);
             }
-        }
+
+            if (tempResponse.trim().toLowerCase() === "please provide reminder date and time.") {
+                // Show calendar to set reminder date and time
+                console.log("Attempting to show calendar...");
+                showCalendar();
+            }
+
+            // Clear the input field
+            document.getElementById('chatInput').value = '';
+        })
+        .catch(error => {
+            console.error('Error chatting with assistant:', error);
+        })
+        .finally(() => {
+            // Hide the loading indicator after the request completes
+            document.getElementById('chatLoader').style.display = 'none';
+        });
+    }
+}
+
+function showCalendar() {
+    const reminderInput = document.getElementById('reminderInput');
+    reminderInput.style.display = 'block';
+}
+
+function closeCalendar() {
+    // Close the calendar modal
+    document.getElementById('calendarModal').style.display = 'none';
+}
+
+function setReminder() {
+    // Get the selected reminder date and time
+    const reminderDate = document.getElementById('reminderDate').value;
+    const reminderTime = document.getElementById('reminderTime').value;
+
+    // Call the addTask function with temporary task text, reminder date, reminder time, and default priority
+    addTask(tempTaskText, reminderDate, reminderTime, "Medium");
+
+    // Print "Task added successfully" message below the "Set Reminder" button
+    const reminderInput = document.getElementById('reminderInput');
+    const successMessage = document.createElement('div');
+    successMessage.classList.add('chatbot-response');
+    successMessage.textContent = 'Task added successfully';
+    reminderInput.appendChild(successMessage);
+
+    // Set notification for the reminder
+    const notificationDateTime = `${reminderDate}T${reminderTime}`;
+    setChatNotification(tempTaskText, notificationDateTime);
+
+    // Close the calendar modal after setting the reminder
+    closeCalendar();
+
+    // Clear success message after 20 seconds
+    setTimeout(() => {
+        successMessage.remove();
+    }, 20000);
+}
+
+function setChatNotification(taskText, notificationDateTime) {
+    const notificationTime = new Date(notificationDateTime).getTime();
+    const currentTime = new Date().getTime();
+    const timeDiff = notificationTime - currentTime;
+    const iconUrl = 'logo.jpg';
+
+    if (timeDiff > 0) {
+        setTimeout(function () {
+            createNotification('Task Reminder', taskText, iconUrl);
+        }, timeDiff);
+    } else {
+        document.getElementById('reminderMessage').textContent = 'Your reminder is set!';
+        setTimeout(() => {
+            document.getElementById('reminderMessage').innerText = '';
+        }, 3000);
+    }
+}
 
 
 
