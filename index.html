@@ -246,7 +246,7 @@
                     <h2>Your Tasks</h2>
                     <button class="backToViewListButton" onclick="backToViewList()"><b><u>Back to View
                                 List</u></b></button>
-                        <!-- Add a search container -->
+                    <!-- Add a search container -->
                     <div class="search-container">
                         <input type="text" id="taskSearch" oninput="searchTasks()" placeholder="Search tasks...">
                         <button class="search-button" onclick="searchTasks()">
@@ -279,7 +279,7 @@
 
     <script>
 
-function searchTasks() {
+        function searchTasks() {
             const searchText = document.getElementById('taskSearch').value.toLowerCase();
             const tasksDiv = document.getElementById('tasks');
             const tasks = Array.from(tasksDiv.children);
@@ -293,7 +293,7 @@ function searchTasks() {
                 }
             });
         }
-        
+
         document.addEventListener('DOMContentLoaded', function () {
             // Function to set light mode
             function setLightMode() {
@@ -373,18 +373,19 @@ function searchTasks() {
         }
 
         let selectedCollection = '';
-let totalTasks = 0;
-let completedTasks = 0;
-let incompleteTasks = 0;
+        let totalTasks = 0;
+        let completedTasks = 0;
+        let incompleteTasks = 0;
 
-function showProfile() {
-    hideAllSections(); // Hide all other sections
-    // Display username, profile picture, and task count for the current month
-    const profileSection = document.getElementById('profileSection');
-    profileSection.innerHTML = `
-        <div class="user-info">
+        function showProfile() {
+            hideAllSections(); // Hide all other sections
+            const profileSection = document.getElementById('profileSection');
+            profileSection.innerHTML = `
+        <div class="profile-container">
+            <div class="user-info">
             <img src="profile_picture.jpg" alt="Profile Picture">
             <h2>${username}</h2>
+        </div>
         </div>
         <div class="task-container">
             <div class="collections-container">
@@ -408,153 +409,124 @@ function showProfile() {
             <div id="task-list"></div>
         </div>
     `;
-    profileSection.style.display = 'block'; // Show the profile section
-    fetchTaskCountForCurrentMonth();
-    fetchCompletedTaskCount();
-    fetchIncompleteTaskCount();
-    fetchTaskStats();
-    displayCalendar(); // Call function to display the calendar
-    fetchAndPopulateCollections(); // Fetch and populate collections in the dropdown
-
-    // Add this line to ensure event listeners are added after the calendar is generated
-    setTimeout(addCalendarCellClickListeners, 1000); // Delay to ensure calendar cells are rendered
-}
-
-// Fetch the collection(months) and populates in dropdown
-function fetchAndPopulateCollections() {
-    fetch(`https://task-ease-537o.onrender.com/tasks/collections/${username}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const collectionsDropdown = document.getElementById('collectionsDropdown');
-        collectionsDropdown.innerHTML = '<option value="">Select a Month</option>'; // Add default option
-        data.collections.forEach(collection => {
-            const option = document.createElement('option');
-            option.value = collection;
-            option.textContent = collection;
-            collectionsDropdown.appendChild(option);
-        });
-        // Set the selected collection from localStorage
-        selectedCollection = localStorage.getItem('selectedCollection') || '';
-        collectionsDropdown.value = selectedCollection;
-        // Fetch task statistics for the selected collection
-        if (selectedCollection) {
-            fetchTaskStats(selectedCollection);
+            profileSection.style.display = 'block'; // Show the profile section
+            fetchAndPopulateCollections(); // Fetch and populate collections in the dropdown
         }
-    })
-    .catch(error => console.error('Error fetching collections:', error));
 
-    // Event listener to trigger fetchTaskStats when the dropdown value changes
-    document.getElementById('collectionsDropdown').addEventListener('change', function () {
-        selectedCollection = this.value;
-        localStorage.setItem('selectedCollection', selectedCollection);
-        fetchTaskStats(selectedCollection);
-    });
-}
+        function fetchAndPopulateCollections() {
+            fetch(`https://task-ease-537o.onrender.com/tasks/collections/${username}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const collectionsDropdown = document.getElementById('collectionsDropdown');
+                    collectionsDropdown.innerHTML = '<option value="">Select a Month</option>'; // Add default option
+                    data.collections.forEach(collection => {
+                        const option = document.createElement('option');
+                        option.value = collection;
+                        option.textContent = collection;
+                        collectionsDropdown.appendChild(option);
+                    });
+                    selectedCollection = localStorage.getItem('selectedCollection') || '';
+                    collectionsDropdown.value = selectedCollection;
+                    if (selectedCollection) {
+                        fetchTaskStats(selectedCollection);
+                        displayCalendar(selectedCollection);
+                    }
+                })
+                .catch(error => console.error('Error fetching collections:', error));
 
-// Highlight task dates in the calendar
-function highlightTaskDates(taskDates, collectionName) {
-    // Find the calendar table for the specified collection (month)
-    const calendarTables = document.querySelectorAll('.calendar-table');
-    let tableToHighlight = null;
-    calendarTables.forEach(table => {
-        if (table.getAttribute('data-collection-name') === collectionName) {
-            tableToHighlight = table;
+            document.getElementById('collectionsDropdown').addEventListener('change', function () {
+                selectedCollection = this.value;
+                localStorage.setItem('selectedCollection', selectedCollection);
+                fetchTaskStats(selectedCollection);
+                displayCalendar(selectedCollection);
+            });
         }
-    });
 
-    if (!tableToHighlight) {
-        console.error('No matching calendar table found for collection:', collectionName);
-        return;
-    }
+        function highlightTaskDates(taskDates, collectionName) {
+            const calendarTables = document.querySelectorAll('.calendar-table');
+            let tableToHighlight = null;
+            calendarTables.forEach(table => {
+                if (table.getAttribute('data-collection-name') === collectionName) {
+                    tableToHighlight = table;
+                }
+            });
 
-    const cells = tableToHighlight.querySelectorAll('.editable');
-
-    // Clear existing highlights
-    cells.forEach(cell => cell.classList.remove('highlighted'));
-
-    // Highlight the correct dates
-    taskDates.forEach(dateStr => {
-        const date = new Date(dateStr);
-        const day = date.getDate();
-
-        cells.forEach(cell => {
-            if (parseInt(cell.textContent) === day) {
-                cell.classList.add('highlighted');
-                console.log(`Highlighted cell: ${cell.textContent}`); // Debugging line
+            if (!tableToHighlight) {
+                console.error('No matching calendar table found for collection:', collectionName);
+                return;
             }
-        });
-    });
 
-    // Add click event listeners to highlighted cells only
-    addCalendarCellClickListeners();
-}
+            const cells = tableToHighlight.querySelectorAll('.editable');
+            cells.forEach(cell => cell.classList.remove('highlighted'));
 
-// Fetch the task dates and highlight them
-function fetchTaskDates(collectionName) {
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const taskDates = data.tasks.map(task => task.date);
-        console.log('Days to highlight:', taskDates);  // Debugging line
-        highlightTaskDates(taskDates, collectionName); // Pass collectionName here
-    })
-    .catch(error => {
-        console.error('Error fetching task dates:', error);
-    });
-}
+            taskDates.forEach(dateStr => {
+                const date = new Date(dateStr);
+                const day = date.getDate();
+                cells.forEach(cell => {
+                    if (parseInt(cell.textContent) === day) {
+                        cell.classList.add('highlighted');
+                    }
+                });
+            });
 
-// Fetch tasks for a specific date
-function fetchTasksForDate(day, monthIndex, collectionName, year) {
-    const targetMonth = parseInt(monthIndex) + 1; // Increment monthIndex by 1 since it's zero-based
-    const formattedDate = `${year}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            addCalendarCellClickListeners();
+        }
 
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}&date=${formattedDate}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        displayTasksForDate(data.tasks, formattedDate);
-    })
-    .catch(error => {
-        console.error('Error fetching tasks for date:', error);
-    });
-}
+        function fetchTaskDates(collectionName) {
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const taskDates = data.tasks.map(task => task.date);
+                    highlightTaskDates(taskDates, collectionName);
+                })
+                .catch(error => console.error('Error fetching task dates:', error));
+        }
 
-// Display tasks for a specific date
-function displayTasksForDate(tasks, date) {
-    const taskContainer = document.createElement('div');
-    taskContainer.classList.add('task-container');
-    taskContainer.innerHTML = `<h4>Tasks for ${date}</h4>`;
+        function fetchTasksForDate(day, monthIndex, collectionName, year) {
+            const targetMonth = parseInt(monthIndex) + 1;
+            const formattedDate = `${year}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-    tasks.forEach(task => {
-        const taskDate = new Date(task.date);
-        const taskYear = taskDate.getFullYear();
-        const taskMonth = taskDate.getMonth() + 1; // Month is zero-based in Date
-        const taskDay = taskDate.getDate();
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}&date=${formattedDate}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => displayTasksForDate(data.tasks, formattedDate))
+                .catch(error => console.error('Error fetching tasks for date:', error));
+        }
 
-        const selectedDate = new Date(date);
-        const selectedYear = selectedDate.getFullYear();
-        const selectedMonth = selectedDate.getMonth() + 1; // Month is zero-based in Date
-        const selectedDay = selectedDate.getDate();
+        function displayTasksForDate(tasks, date) {
+            const taskContainer = document.createElement('div');
+            taskContainer.classList.add('task-container');
+            taskContainer.innerHTML = `<h4>Tasks for ${date}</h4>`;
 
-        if (taskYear === selectedYear && taskMonth === selectedMonth && taskDay === selectedDay) {
-            const taskItem = document.createElement('div');
-            taskItem.classList.add('task-item');
+            tasks.forEach(task => {
+                const taskDate = new Date(task.date);
+                const taskYear = taskDate.getFullYear();
+                const taskMonth = taskDate.getMonth() + 1;
+                const taskDay = taskDate.getDate();
+                const selectedDate = new Date(date);
+                const selectedYear = selectedDate.getFullYear();
+                const selectedMonth = selectedDate.getMonth() + 1;
+                const selectedDay = selectedDate.getDate();
 
-            const taskContent = document.createElement('div');
-            taskContent.classList.add('task-content');
-            taskContent.innerHTML = `
+                if (taskYear === selectedYear && taskMonth === selectedMonth && taskDay === selectedDay) {
+                    const taskItem = document.createElement('div');
+                    taskItem.classList.add('task-item');
+
+                    const taskContent = document.createElement('div');
+                    taskContent.classList.add('task-content');
+                    taskContent.innerHTML = `
                 <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
                 <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''} disabled>
             `;
 
-            const detailsDiv = document.createElement('div');
-            detailsDiv.classList.add('task-details');
-            detailsDiv.innerHTML = `
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.classList.add('task-details');
+                    detailsDiv.innerHTML = `
                 <p><strong>Priority:</strong> ${task.priority}</p>
                 <p><strong>Date:</strong> ${task.date}</p>
                 <p><strong>Time:</strong> ${task.time}</p>
@@ -562,141 +534,106 @@ function displayTasksForDate(tasks, date) {
                 <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
                 <p><strong>CreatedAt:</strong> ${task.created_at}</p>
             `;
-            detailsDiv.style.display = 'none';
+                    detailsDiv.style.display = 'none';
 
-            taskItem.appendChild(taskContent);
-            taskItem.appendChild(detailsDiv);
+                    taskItem.appendChild(taskContent);
+                    taskItem.appendChild(detailsDiv);
+                    taskContainer.appendChild(taskItem);
+                }
+            });
 
-            taskContainer.appendChild(taskItem);
+            showMessageBox(taskContainer.innerHTML);
         }
-    });
 
-    showMessageBox(taskContainer.innerHTML);
-}
-
-// Function to show the message box
-function showMessageBox(content) {
-    const messageBox = document.createElement('div');
-    messageBox.classList.add('message-box-cal');
-    messageBox.innerHTML = `
+        function showMessageBox(content) {
+            const messageBox = document.createElement('div');
+            messageBox.classList.add('message-box-cal');
+            messageBox.innerHTML = `
         <div class="message-content">
             ${content}
             <button class="close-btn-cal" onclick="closeMessageBox()">&#10005;</button>
         </div>
     `;
-    document.body.appendChild(messageBox);
-}
+            document.body.appendChild(messageBox);
+        }
 
-// Function to close the message box
-function closeMessageBox() {
-    const messageBox = document.querySelector('.message-box-cal');
-    if (messageBox) {
-        messageBox.remove();
-    }
-}
+        function closeMessageBox() {
+            const messageBox = document.querySelector('.message-box-cal');
+            if (messageBox) {
+                messageBox.remove();
+            }
+        }
 
-// Add event listeners to calendar cells
-function addCalendarCellClickListeners() {
-    const calendarCells = document.querySelectorAll('.calendar-table .editable');
-    calendarCells.forEach(cell => {
-        if (cell.classList.contains('highlighted')) {
-            cell.style.cursor = 'pointer'; // Make highlighted cells clickable
-            cell.addEventListener('click', function () {
-                const day = this.getAttribute('data-day');
-                const month = this.getAttribute('data-month');
-                const year = this.getAttribute('data-year');
-                const collectionName = this.closest('.calendar-table').getAttribute('data-collection-name');
-                if (collectionName) {
-                    fetchTasksForDate(day, month, collectionName, year);
+        function addCalendarCellClickListeners() {
+            const calendarCells = document.querySelectorAll('.calendar-table .editable');
+            calendarCells.forEach(cell => {
+                if (cell.classList.contains('highlighted')) {
+                    cell.style.cursor = 'pointer';
+                    cell.addEventListener('click', function () {
+                        const day = this.getAttribute('data-day');
+                        const month = this.getAttribute('data-month');
+                        const year = this.getAttribute('data-year');
+                        const collectionName = this.closest('.calendar-table').getAttribute('data-collection-name');
+                        if (collectionName) {
+                            fetchTasksForDate(day, month, collectionName, year);
+                        }
+                    });
+                } else {
+                    cell.style.cursor = 'not-allowed';
                 }
             });
-        } else {
-            cell.style.cursor = 'not-allowed'; // Indicate non-clickable cells
         }
-    });
-}
 
-//CALENDAR *******************************
+        function generateMonthCalendarHtml(collectionName, monthIndex, year) {
+            if (!collectionName) return '';
 
-// Generate month calendar HTML and map collection names
-function generateMonthCalendarHtml(collectionName, monthIndex, year) {
-    if (!collectionName) return ''; // Return empty HTML if collection name is not provided
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const startDay = new Date(year, monthIndex, 1).getDay();
 
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate(); // Number of days in the month
-    const startDay = new Date(year, monthIndex, 1).getDay(); // Day of the week the month starts on
+            let calendarHtml = `<h3>${collectionName}</h3>`;
+            calendarHtml += `<table class="calendar-table" data-collection-name="${collectionName}">`;
+            calendarHtml += '<thead><tr>';
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (const day of daysOfWeek) {
+                calendarHtml += `<th>${day}</th>`;
+            }
+            calendarHtml += '</tr></thead>';
+            calendarHtml += '<tbody><tr>';
 
-    // Generate calendar HTML for the month
-    let calendarHtml = `<h3>${collectionName}</h3>`;
-    calendarHtml += `<table class="calendar-table" data-collection-name="${collectionName}">`;
-    calendarHtml += '<thead><tr>';
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (const day of daysOfWeek) {
-        calendarHtml += `<th>${day}</th>`;
-    }
-    calendarHtml += '</tr></thead>';
-    calendarHtml += '<tbody><tr>';
+            for (let j = 0; j < startDay; j++) {
+                calendarHtml += '<td></td>';
+            }
 
-    // Fill in the blanks for the days before the first day of the month
-    for (let j = 0; j < startDay; j++) {
-        calendarHtml += '<td></td>';
-    }
+            for (let day = 1; day <= daysInMonth; day++) {
+                if ((startDay + day - 1) % 7 === 0 && day !== 1) {
+                    calendarHtml += '</tr><tr>';
+                }
+                calendarHtml += `<td class="editable" data-day="${day}" data-month="${monthIndex}" data-year="${year}">${day}</td>`;
+            }
 
-    // Fill in the days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-        if ((startDay + day - 1) % 7 === 0 && day !== 1) {
-            calendarHtml += '</tr><tr>';
+            const endDay = (startDay + daysInMonth) % 7;
+            if (endDay !== 0) {
+                for (let k = endDay; k < 7; k++) {
+                    calendarHtml += '<td></td>';
+                }
+            }
+
+            calendarHtml += '</tr></tbody></table>';
+            return calendarHtml;
         }
-        calendarHtml += `<td class="editable" data-day="${day}" data-month="${monthIndex}" data-year="${year}">${day}</td>`;
-    }
 
-    // Fill in the blanks for the days after the last day of the month
-    const endDay = (startDay + daysInMonth) % 7;
-    if (endDay !== 0) {
-        for (let k = endDay; k < 7; k++) {
-            calendarHtml += '<td></td>';
+        function displayCalendar(selectedCollection) {
+            const calendarContainer = document.getElementById('calendar');
+            const calendarHeader = document.getElementById('calendarHeader');
+            calendarContainer.innerHTML = ''; // Clear existing calendar
+
+            const currentYear = new Date().getFullYear();
+            const monthIndex = new Date(Date.parse(`${selectedCollection} 1, ${currentYear}`)).getMonth();
+            const monthHtml = generateMonthCalendarHtml(selectedCollection, monthIndex, currentYear);
+            calendarContainer.innerHTML = monthHtml;
+            fetchTaskDates(selectedCollection);
         }
-    }
 
-    calendarHtml += '</tr></tbody></table>';
-
-    return calendarHtml;
-}
-
-// Display the calendar for available collections
-function displayCalendar() {
-    const calendarContainer = document.getElementById('calendar');
-    const calendarHeader = document.getElementById('calendarHeader');
-
-    fetch(`https://task-ease-537o.onrender.com/tasks/collections/${username}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const collections = data.collections;
-        const currentYear = new Date().getFullYear(); // Get the current year
-
-        collections.forEach((collectionName, index) => {
-            // Parse the collection name to get the month index
-            const monthIndex = new Date(Date.parse(`${collectionName} 1, ${currentYear}`)).getMonth();
-            const monthHtml = generateMonthCalendarHtml(collectionName, monthIndex, currentYear); // Pass currentYear
-            calendarContainer.innerHTML += monthHtml;
-            fetchTaskDates(collectionName);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching collection names:', error);
-    });
-}
-
-
-
-// function getMonthName(month) {
-//     const monthNames = ["January", "February", "March", "April", "May", "June",
-//         "July", "August", "September", "October", "November", "December"];
-//     return monthNames[month - 1];
-// }
-
-        // total number of tasks
         function fetchTaskCountForCurrentMonth() {
             const collectionsDropdown = document.getElementById('collectionsDropdown');
             const collectionName = collectionsDropdown.value;
@@ -725,8 +662,6 @@ function displayCalendar() {
 
         let pieChartInstance = null;
 
-
-        // tasks completed
         function fetchCompletedTaskCount() {
             const collectionsDropdown = document.getElementById('collectionsDropdown');
             const collectionName = collectionsDropdown.value;
@@ -734,7 +669,7 @@ function displayCalendar() {
             if (!collectionName) {
                 const completedTaskCountElement = document.getElementById('completedTaskCount');
                 completedTaskCountElement.innerText = 'Loading...';
-                return /*Promise.reject('No collection selected')*/;
+                return;
             }
 
             return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
@@ -755,8 +690,6 @@ function displayCalendar() {
                 });
         }
 
-
-        // Incomplete tasks
         function fetchIncompleteTaskCount() {
             const collectionsDropdown = document.getElementById('collectionsDropdown');
             const collectionName = collectionsDropdown.value;
@@ -764,7 +697,7 @@ function displayCalendar() {
             if (!collectionName) {
                 const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
                 incompleteTaskCountElement.innerText = 'Loading...';
-                return /*Promise.reject('No collection selected')*/;
+                return;
             }
 
             return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
@@ -784,7 +717,7 @@ function displayCalendar() {
                     return 0;
                 });
         }
-        // Pie chart
+
         function fetchTaskStats(collectionName) {
             if (!collectionName) {
                 return;
@@ -812,6 +745,7 @@ function displayCalendar() {
             document.getElementById('completedTaskCount').innerText = errorMsg || `Completed Tasks: ${completedTasks}`;
             document.getElementById('incompleteTaskCount').innerText = errorMsg || `Incomplete Tasks: ${incompleteTasks}`;
         }
+
         function displayPieChart() {
             const ctx = document.getElementById('taskPieChart').getContext('2d');
 
@@ -827,7 +761,7 @@ function displayCalendar() {
                         data: [completedTasks, incompleteTasks],
                         backgroundColor: ['#65B741', '#E72929'],
                         hoverBackgroundColor: ['#65B741', '#E72929'],
-                        borderWidth: 0 // Remove the white border
+                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -840,15 +774,16 @@ function displayCalendar() {
                             labels: {
                                 usePointStyle: true,
                                 pointStyle: 'rectRounded',
-                                boxWidth: 12, // Adjust the size of the squares
-                                boxHeight: 12 // Ensure the height matches the width for squares
+                                boxWidth: 12,
+                                boxHeight: 12
                             },
-                            onClick: null // Disable the default onClick behavior
+                            onClick: null
                         }
                     }
                 }
             });
         }
+
 
         function displayTasks(tasks) {
             const tasksDiv = document.getElementById('tasks');
@@ -1368,34 +1303,34 @@ function displayCalendar() {
         });
 
         function ChatfetchTasks(collectionName) {
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-        .then(response => response.json())
-        .then(data => {
-            ChatdisplayTasks(data.tasks);
-        })
-        .catch(error => console.error('Error fetching tasks:', error));
-}
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    ChatdisplayTasks(data.tasks);
+                })
+                .catch(error => console.error('Error fetching tasks:', error));
+        }
 
-function ChatdisplayTasks(tasks) {
-    const tasksDiv = document.getElementById('tasks');
-    tasksDiv.innerHTML = '';
+        function ChatdisplayTasks(tasks) {
+            const tasksDiv = document.getElementById('tasks');
+            tasksDiv.innerHTML = '';
 
-    tasks.forEach(task => {
-        const taskItem = document.createElement('div');
-        taskItem.classList.add('task-item');
+            tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item');
 
-        const taskContent = document.createElement('div');
-        taskContent.classList.add('task-content');
-        taskContent.innerHTML = `
+                const taskContent = document.createElement('div');
+                taskContent.classList.add('task-content');
+                taskContent.innerHTML = `
             <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
             <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''}>
         `;
 
-        const detailsDiv = document.createElement('div');
-        detailsDiv.classList.add('task-details');
-        detailsDiv.innerHTML = `
+                const detailsDiv = document.createElement('div');
+                detailsDiv.classList.add('task-details');
+                detailsDiv.innerHTML = `
             <p><strong>Priority:</strong> ${task.priority}</p>
             <p><strong>Date:</strong> ${task.date}</p>
             <p><strong>Time:</strong> ${task.time}</p>
@@ -1403,225 +1338,225 @@ function ChatdisplayTasks(tasks) {
             <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
             <p><strong>CreatedAt:</strong> ${task.created_at}</p>
         `;
-        detailsDiv.style.display = 'none';
+                detailsDiv.style.display = 'none';
 
-        const priorityDiv = document.createElement('div');
-        priorityDiv.classList.add('priority');
-        priorityDiv.textContent = task.priority;
+                const priorityDiv = document.createElement('div');
+                priorityDiv.classList.add('priority');
+                priorityDiv.textContent = task.priority;
 
-        const checkbox = taskContent.querySelector('input[type="checkbox"]');
-        checkbox.addEventListener('change', function () {
-            const taskId = this.dataset.taskId;
-            const completed = this.checked;
-            localStorage.setItem(`task_${taskId}_checked`, completed);
-            if (completed) {
-                taskContent.querySelector('.task-text').classList.add('completed');
-            } else {
-                taskContent.querySelector('.task-text').classList.remove('completed');
-            }
-            updateTaskCompletion(taskId, completed);
-            fetchCompletedTaskCount(); // Update the completed task count
-            fetchIncompleteTaskCount(); // Update the incomplete task count
-        });
+                const checkbox = taskContent.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function () {
+                    const taskId = this.dataset.taskId;
+                    const completed = this.checked;
+                    localStorage.setItem(`task_${taskId}_checked`, completed);
+                    if (completed) {
+                        taskContent.querySelector('.task-text').classList.add('completed');
+                    } else {
+                        taskContent.querySelector('.task-text').classList.remove('completed');
+                    }
+                    updateTaskCompletion(taskId, completed);
+                    fetchCompletedTaskCount(); // Update the completed task count
+                    fetchIncompleteTaskCount(); // Update the incomplete task count
+                });
 
-        taskItem.appendChild(taskContent);
-        taskItem.appendChild(detailsDiv);
-        taskItem.appendChild(priorityDiv); // Append the priority div
+                taskItem.appendChild(taskContent);
+                taskItem.appendChild(detailsDiv);
+                taskItem.appendChild(priorityDiv); // Append the priority div
 
-        const buttonsDiv = document.createElement('div');
-        buttonsDiv.classList.add('task-buttons');
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.classList.add('task-buttons');
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', function (event) {
-            event.stopPropagation();
-            deleteTask(task.task_id);
-        });
-        buttonsDiv.appendChild(deleteButton);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    deleteTask(task.task_id);
+                });
+                buttonsDiv.appendChild(deleteButton);
 
-        const updateButton = document.createElement('button');
-        updateButton.textContent = 'Update';
-        updateButton.classList.add('secondary-btn');
-        updateButton.addEventListener('click', function (event) {
-            event.stopPropagation();
-            showUpdateForm(task.task_id, task.task_text, task.priority, task.date, task.time, task.reminder_date, task.reminder_time);
-        });
-        buttonsDiv.appendChild(updateButton);
+                const updateButton = document.createElement('button');
+                updateButton.textContent = 'Update';
+                updateButton.classList.add('secondary-btn');
+                updateButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    showUpdateForm(task.task_id, task.task_text, task.priority, task.date, task.time, task.reminder_date, task.reminder_time);
+                });
+                buttonsDiv.appendChild(updateButton);
 
-        taskItem.appendChild(buttonsDiv);
+                taskItem.appendChild(buttonsDiv);
 
-        taskItem.addEventListener('click', function (event) {
-            if (event.target.type !== 'checkbox') {
-                const details = taskItem.querySelector('.task-details');
-                details.style.display = details.style.display === 'none' ? 'block' : 'none';
-            }
-        });
+                taskItem.addEventListener('click', function (event) {
+                    if (event.target.type !== 'checkbox') {
+                        const details = taskItem.querySelector('.task-details');
+                        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
 
-        tasksDiv.appendChild(taskItem);
-    });
-
-    document.getElementById('tasksSection').style.display = 'block';
-}
-
-// CHAT WINDOW
-let tempTaskText = ""; // Variable to store temporary task text
-let tempResponse = ""; // Variable to store temporary response
-
-function chatWithAssistant() {
-    // Clear previous chat output and related elements
-    document.getElementById('chatOutput').innerHTML = ''; // Clear chat output
-    document.getElementById('reminderInput').style.display = 'none'; // Hide reminder input
-    const viewTasksButton = document.getElementById('viewTasksButton');
-    if (viewTasksButton) {
-        viewTasksButton.remove(); // Remove view tasks button if exists
-    }
-
-    var collectionName = get_collection_name();
-    const chatInput = document.getElementById('chatInput').value.trim();
-    if (chatInput !== '') {
-        document.getElementById('chatLoader').style.display = 'block';
-
-        // Check if the input starts with "add task" and remove it if present
-        const taskDescription = chatInput.toLowerCase().startsWith('add task') ? chatInput.slice(9).trim() : chatInput;
-
-        // Construct the URL with query parameters
-        const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=${collectionName}`;
-
-        // Make a POST request to the API to chat with the chatbot
-        fetch(url, {
-            method: 'POST'
-        })
-            .then(response => response.json())
-            .then(data => {
-                // Store temporary task text and response
-                tempTaskText = taskDescription; // Store only the task description
-                tempResponse = data.response;
-
-                // Display the response from the server in the chat output area
-                document.getElementById('chatOutput').innerHTML = `<div class="chatbot-response">${data.response}</div>`;
-
-                if (
-                    tempResponse.trim().toLowerCase() === "to view all tasks, just send a message like 'view tasks' or 'display tasks' to taskease. the other way is to choose particular month for viewing tasks by clicking below button available." ||
-                    tempResponse.trim().toLowerCase() === "to update a task, send a message like 'update task [task id] to [new description]' to taskease. the other way is to update manually in your view tasks of respective month by clicking below button available." ||
-                    tempResponse.trim().toLowerCase() === "to delete a task, simply message 'delete task [task id]' to taskease. the other way is to delete manually in your view tasks of respective month by clicking below button available."
-                ) {
-                    // Show button to view tasks
-                    const viewTasksButton = document.createElement('button');
-                    viewTasksButton.textContent = 'View Tasks';
-                    viewTasksButton.className = 'view-tasks-button'; // Add the CSS class
-                    viewTasksButton.id = 'viewTasksButton'; // Add an ID
-                    viewTasksButton.addEventListener('click', () => {
-                        ChatfetchTasks(collectionName);
-                    });
-                    document.getElementById('chatOutput').appendChild(viewTasksButton);
-                }
-
-                if (tempResponse.trim().toLowerCase() === "please provide reminder date and time.") {
-                    // Show calendar to set reminder date and time
-                    console.log("Attempting to show calendar...");
-                    showCalendar();
-                }
-
-                // Clear the input field
-                document.getElementById('chatInput').value = '';
-            })
-            .catch(error => {
-                console.error('Error chatting with assistant:', error);
-            })
-            .finally(() => {
-                // Hide the loading indicator after the request completes
-                document.getElementById('chatLoader').style.display = 'none';
+                tasksDiv.appendChild(taskItem);
             });
-    }
-}
 
-function showCalendar() {
-    const reminderInput = document.getElementById('reminderInput');
-    reminderInput.style.display = 'block';
-}
+            document.getElementById('tasksSection').style.display = 'block';
+        }
 
-function closeCalendar() {
-    // Close the calendar modal
-    document.getElementById('calendarModal').style.display = 'none';
-}
+        // CHAT WINDOW
+        let tempTaskText = ""; // Variable to store temporary task text
+        let tempResponse = ""; // Variable to store temporary response
 
-function setReminder() {
-    // Get the selected reminder date and time
-    const reminderDate = document.getElementById('reminderDate').value;
-    const reminderTime = document.getElementById('reminderTime').value;
+        function chatWithAssistant() {
+            // Clear previous chat output and related elements
+            document.getElementById('chatOutput').innerHTML = ''; // Clear chat output
+            document.getElementById('reminderInput').style.display = 'none'; // Hide reminder input
+            const viewTasksButton = document.getElementById('viewTasksButton');
+            if (viewTasksButton) {
+                viewTasksButton.remove(); // Remove view tasks button if exists
+            }
 
-    // Call the addTask function with temporary task text, reminder date, reminder time, and default priority
-    addTask(tempTaskText, reminderDate, reminderTime, "Medium");
+            var collectionName = get_collection_name();
+            const chatInput = document.getElementById('chatInput').value.trim();
+            if (chatInput !== '') {
+                document.getElementById('chatLoader').style.display = 'block';
 
-    // Print "Task added successfully" message below the "Set Reminder" button
-    const reminderInput = document.getElementById('reminderInput');
-    const successMessage = document.createElement('div');
-    successMessage.classList.add('chatbot-response');
-    successMessage.textContent = 'Task added successfully';
-    reminderInput.appendChild(successMessage);
+                // Check if the input starts with "add task" and remove it if present
+                const taskDescription = chatInput.toLowerCase().startsWith('add task') ? chatInput.slice(9).trim() : chatInput;
 
-    // Set notification for the reminder
-    const notificationDateTime = `${reminderDate}T${reminderTime}`;
-    setChatNotification(tempTaskText, notificationDateTime);
+                // Construct the URL with query parameters
+                const url = `https://task-ease-537o.onrender.com/tasks/chat_with_chatbot?user_input=${encodeURIComponent(chatInput)}&username=${encodeURIComponent(username)}&collection_name=${collectionName}`;
 
-    // Close the calendar modal after setting the reminder
-    closeCalendar();
-}
+                // Make a POST request to the API to chat with the chatbot
+                fetch(url, {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Store temporary task text and response
+                        tempTaskText = taskDescription; // Store only the task description
+                        tempResponse = data.response;
 
-function setChatNotification(taskText, notificationDateTime) {
-    const notificationTime = new Date(notificationDateTime).getTime();
-    const currentTime = new Date().getTime();
-    const timeDiff = notificationTime - currentTime;
-    const iconUrl = 'logo.jpg';
+                        // Display the response from the server in the chat output area
+                        document.getElementById('chatOutput').innerHTML = `<div class="chatbot-response">${data.response}</div>`;
 
-    if (timeDiff > 0) {
-        setTimeout(function () {
-            createNotification('Task Reminder', taskText, 'logo.jpg');
-        }, timeDiff);
-    } else {
-        document.getElementById('reminderMessage').textContent = 'Your reminder is set!';
-        setTimeout(() => {
-            document.getElementById('reminderMessage').innerText = '';
-        }, 3000);
-    }
-}
+                        if (
+                            tempResponse.trim().toLowerCase() === "to view all tasks, just send a message like 'view tasks' or 'display tasks' to taskease. the other way is to choose particular month for viewing tasks by clicking below button available." ||
+                            tempResponse.trim().toLowerCase() === "to update a task, send a message like 'update task [task id] to [new description]' to taskease. the other way is to update manually in your view tasks of respective month by clicking below button available." ||
+                            tempResponse.trim().toLowerCase() === "to delete a task, simply message 'delete task [task id]' to taskease. the other way is to delete manually in your view tasks of respective month by clicking below button available."
+                        ) {
+                            // Show button to view tasks
+                            const viewTasksButton = document.createElement('button');
+                            viewTasksButton.textContent = 'View Tasks';
+                            viewTasksButton.className = 'view-tasks-button'; // Add the CSS class
+                            viewTasksButton.id = 'viewTasksButton'; // Add an ID
+                            viewTasksButton.addEventListener('click', () => {
+                                ChatfetchTasks(collectionName);
+                            });
+                            document.getElementById('chatOutput').appendChild(viewTasksButton);
+                        }
 
-function clearChat() {
-    // Clear chat output
-    document.getElementById('chatOutput').innerHTML = '';
+                        if (tempResponse.trim().toLowerCase() === "please provide reminder date and time.") {
+                            // Show calendar to set reminder date and time
+                            console.log("Attempting to show calendar...");
+                            showCalendar();
+                        }
 
-    // Hide reminder input
-    document.getElementById('reminderInput').style.display = 'none';
+                        // Clear the input field
+                        document.getElementById('chatInput').value = '';
+                    })
+                    .catch(error => {
+                        console.error('Error chatting with assistant:', error);
+                    })
+                    .finally(() => {
+                        // Hide the loading indicator after the request completes
+                        document.getElementById('chatLoader').style.display = 'none';
+                    });
+            }
+        }
 
-    // Remove view tasks button if exists
-    const viewTasksButton = document.getElementById('viewTasksButton');
-    if (viewTasksButton) {
-        viewTasksButton.remove();
-    }
-    
-    // Clear input field
-    document.getElementById('chatInput').value = '';
+        function showCalendar() {
+            const reminderInput = document.getElementById('reminderInput');
+            reminderInput.style.display = 'block';
+        }
 
-    // Clear temporary task text and response
-    tempTaskText = '';
-    tempResponse = '';
+        function closeCalendar() {
+            // Close the calendar modal
+            document.getElementById('calendarModal').style.display = 'none';
+        }
 
-    // Clear tasks section
-    const tasksDiv = document.getElementById('tasks');
-    if (tasksDiv) {
-        tasksDiv.innerHTML = '';
-    }
+        function setReminder() {
+            // Get the selected reminder date and time
+            const reminderDate = document.getElementById('reminderDate').value;
+            const reminderTime = document.getElementById('reminderTime').value;
 
-    // Hide tasks section
-    const tasksSection = document.getElementById('tasksSection');
-    if (tasksSection) {
-        tasksSection.style.display = 'none';
-    }
-}
+            // Call the addTask function with temporary task text, reminder date, reminder time, and default priority
+            addTask(tempTaskText, reminderDate, reminderTime, "Medium");
 
-// Add event listener to clear chat button
-const clearChatButton = document.querySelector('.clear-chat-button');
-clearChatButton.addEventListener('click', clearChat);
+            // Print "Task added successfully" message below the "Set Reminder" button
+            const reminderInput = document.getElementById('reminderInput');
+            const successMessage = document.createElement('div');
+            successMessage.classList.add('chatbot-response');
+            successMessage.textContent = 'Task added successfully';
+            reminderInput.appendChild(successMessage);
+
+            // Set notification for the reminder
+            const notificationDateTime = `${reminderDate}T${reminderTime}`;
+            setChatNotification(tempTaskText, notificationDateTime);
+
+            // Close the calendar modal after setting the reminder
+            closeCalendar();
+        }
+
+        function setChatNotification(taskText, notificationDateTime) {
+            const notificationTime = new Date(notificationDateTime).getTime();
+            const currentTime = new Date().getTime();
+            const timeDiff = notificationTime - currentTime;
+            const iconUrl = 'logo.jpg';
+
+            if (timeDiff > 0) {
+                setTimeout(function () {
+                    createNotification('Task Reminder', taskText, 'logo.jpg');
+                }, timeDiff);
+            } else {
+                document.getElementById('reminderMessage').textContent = 'Your reminder is set!';
+                setTimeout(() => {
+                    document.getElementById('reminderMessage').innerText = '';
+                }, 3000);
+            }
+        }
+
+        function clearChat() {
+            // Clear chat output
+            document.getElementById('chatOutput').innerHTML = '';
+
+            // Hide reminder input
+            document.getElementById('reminderInput').style.display = 'none';
+
+            // Remove view tasks button if exists
+            const viewTasksButton = document.getElementById('viewTasksButton');
+            if (viewTasksButton) {
+                viewTasksButton.remove();
+            }
+
+            // Clear input field
+            document.getElementById('chatInput').value = '';
+
+            // Clear temporary task text and response
+            tempTaskText = '';
+            tempResponse = '';
+
+            // Clear tasks section
+            const tasksDiv = document.getElementById('tasks');
+            if (tasksDiv) {
+                tasksDiv.innerHTML = '';
+            }
+
+            // Hide tasks section
+            const tasksSection = document.getElementById('tasksSection');
+            if (tasksSection) {
+                tasksSection.style.display = 'none';
+            }
+        }
+
+        // Add event listener to clear chat button
+        const clearChatButton = document.querySelector('.clear-chat-button');
+        clearChatButton.addEventListener('click', clearChat);
 
 
 
