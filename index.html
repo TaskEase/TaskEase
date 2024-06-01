@@ -373,17 +373,19 @@
         }
 
         let selectedCollection = '';
-let totalTasks = 0;
-let completedTasks = 0;
-let incompleteTasks = 0;
+        let totalTasks = 0;
+        let completedTasks = 0;
+        let incompleteTasks = 0;
 
-function showProfile() {
-    hideAllSections(); // Hide all other sections
-    const profileSection = document.getElementById('profileSection');
-    profileSection.innerHTML = `
-        <div class="user-info">
+        function showProfile() {
+            hideAllSections(); // Hide all other sections
+            const profileSection = document.getElementById('profileSection');
+            profileSection.innerHTML = `
+        <div class="profile-container">
+            <div class="user-info">
             <img src="profile_picture.jpg" alt="Profile Picture">
             <h2>${username}</h2>
+        </div>
         </div>
         <div class="task-container">
             <div class="collections-container">
@@ -407,124 +409,124 @@ function showProfile() {
             <div id="task-list"></div>
         </div>
     `;
-    profileSection.style.display = 'block'; // Show the profile section
-    fetchAndPopulateCollections(); // Fetch and populate collections in the dropdown
-}
-
-function fetchAndPopulateCollections() {
-    fetch(`https://task-ease-537o.onrender.com/tasks/collections/${username}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const collectionsDropdown = document.getElementById('collectionsDropdown');
-        collectionsDropdown.innerHTML = '<option value="">Select a Month</option>'; // Add default option
-        data.collections.forEach(collection => {
-            const option = document.createElement('option');
-            option.value = collection;
-            option.textContent = collection;
-            collectionsDropdown.appendChild(option);
-        });
-        selectedCollection = localStorage.getItem('selectedCollection') || '';
-        collectionsDropdown.value = selectedCollection;
-        if (selectedCollection) {
-            fetchTaskStats(selectedCollection);
-            displayCalendar(selectedCollection);
+            profileSection.style.display = 'block'; // Show the profile section
+            fetchAndPopulateCollections(); // Fetch and populate collections in the dropdown
         }
-    })
-    .catch(error => console.error('Error fetching collections:', error));
 
-    document.getElementById('collectionsDropdown').addEventListener('change', function () {
-        selectedCollection = this.value;
-        localStorage.setItem('selectedCollection', selectedCollection);
-        fetchTaskStats(selectedCollection);
-        displayCalendar(selectedCollection);
-    });
-}
+        function fetchAndPopulateCollections() {
+            fetch(`https://task-ease-537o.onrender.com/tasks/collections/${username}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const collectionsDropdown = document.getElementById('collectionsDropdown');
+                    collectionsDropdown.innerHTML = '<option value="">Select a Month</option>'; // Add default option
+                    data.collections.forEach(collection => {
+                        const option = document.createElement('option');
+                        option.value = collection;
+                        option.textContent = collection;
+                        collectionsDropdown.appendChild(option);
+                    });
+                    selectedCollection = localStorage.getItem('selectedCollection') || '';
+                    collectionsDropdown.value = selectedCollection;
+                    if (selectedCollection) {
+                        fetchTaskStats(selectedCollection);
+                        displayCalendar(selectedCollection);
+                    }
+                })
+                .catch(error => console.error('Error fetching collections:', error));
 
-function highlightTaskDates(taskDates, collectionName) {
-    const calendarTables = document.querySelectorAll('.calendar-table');
-    let tableToHighlight = null;
-    calendarTables.forEach(table => {
-        if (table.getAttribute('data-collection-name') === collectionName) {
-            tableToHighlight = table;
+            document.getElementById('collectionsDropdown').addEventListener('change', function () {
+                selectedCollection = this.value;
+                localStorage.setItem('selectedCollection', selectedCollection);
+                fetchTaskStats(selectedCollection);
+                displayCalendar(selectedCollection);
+            });
         }
-    });
 
-    if (!tableToHighlight) {
-        console.error('No matching calendar table found for collection:', collectionName);
-        return;
-    }
+        function highlightTaskDates(taskDates, collectionName) {
+            const calendarTables = document.querySelectorAll('.calendar-table');
+            let tableToHighlight = null;
+            calendarTables.forEach(table => {
+                if (table.getAttribute('data-collection-name') === collectionName) {
+                    tableToHighlight = table;
+                }
+            });
 
-    const cells = tableToHighlight.querySelectorAll('.editable');
-    cells.forEach(cell => cell.classList.remove('highlighted'));
-
-    taskDates.forEach(dateStr => {
-        const date = new Date(dateStr);
-        const day = date.getDate();
-        cells.forEach(cell => {
-            if (parseInt(cell.textContent) === day) {
-                cell.classList.add('highlighted');
+            if (!tableToHighlight) {
+                console.error('No matching calendar table found for collection:', collectionName);
+                return;
             }
-        });
-    });
 
-    addCalendarCellClickListeners();
-}
+            const cells = tableToHighlight.querySelectorAll('.editable');
+            cells.forEach(cell => cell.classList.remove('highlighted'));
 
-function fetchTaskDates(collectionName) {
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const taskDates = data.tasks.map(task => task.date);
-        highlightTaskDates(taskDates, collectionName);
-    })
-    .catch(error => console.error('Error fetching task dates:', error));
-}
+            taskDates.forEach(dateStr => {
+                const date = new Date(dateStr);
+                const day = date.getDate();
+                cells.forEach(cell => {
+                    if (parseInt(cell.textContent) === day) {
+                        cell.classList.add('highlighted');
+                    }
+                });
+            });
 
-function fetchTasksForDate(day, monthIndex, collectionName, year) {
-    const targetMonth = parseInt(monthIndex) + 1;
-    const formattedDate = `${year}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            addCalendarCellClickListeners();
+        }
 
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}&date=${formattedDate}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => displayTasksForDate(data.tasks, formattedDate))
-    .catch(error => console.error('Error fetching tasks for date:', error));
-}
+        function fetchTaskDates(collectionName) {
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const taskDates = data.tasks.map(task => task.date);
+                    highlightTaskDates(taskDates, collectionName);
+                })
+                .catch(error => console.error('Error fetching task dates:', error));
+        }
 
-function displayTasksForDate(tasks, date) {
-    const taskContainer = document.createElement('div');
-    taskContainer.classList.add('task-container');
-    taskContainer.innerHTML = `<h4>Tasks for ${date}</h4>`;
-    
-    tasks.forEach(task => {
-        const taskDate = new Date(task.date);
-        const taskYear = taskDate.getFullYear();
-        const taskMonth = taskDate.getMonth() + 1;
-        const taskDay = taskDate.getDate();
-        const selectedDate = new Date(date);
-        const selectedYear = selectedDate.getFullYear();
-        const selectedMonth = selectedDate.getMonth() + 1;
-        const selectedDay = selectedDate.getDate();
+        function fetchTasksForDate(day, monthIndex, collectionName, year) {
+            const targetMonth = parseInt(monthIndex) + 1;
+            const formattedDate = `${year}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        if (taskYear === selectedYear && taskMonth === selectedMonth && taskDay === selectedDay) {
-            const taskItem = document.createElement('div');
-            taskItem.classList.add('task-item');
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}&date=${formattedDate}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => displayTasksForDate(data.tasks, formattedDate))
+                .catch(error => console.error('Error fetching tasks for date:', error));
+        }
 
-            const taskContent = document.createElement('div');
-            taskContent.classList.add('task-content');
-            taskContent.innerHTML = `
+        function displayTasksForDate(tasks, date) {
+            const taskContainer = document.createElement('div');
+            taskContainer.classList.add('task-container');
+            taskContainer.innerHTML = `<h4>Tasks for ${date}</h4>`;
+
+            tasks.forEach(task => {
+                const taskDate = new Date(task.date);
+                const taskYear = taskDate.getFullYear();
+                const taskMonth = taskDate.getMonth() + 1;
+                const taskDay = taskDate.getDate();
+                const selectedDate = new Date(date);
+                const selectedYear = selectedDate.getFullYear();
+                const selectedMonth = selectedDate.getMonth() + 1;
+                const selectedDay = selectedDate.getDate();
+
+                if (taskYear === selectedYear && taskMonth === selectedMonth && taskDay === selectedDay) {
+                    const taskItem = document.createElement('div');
+                    taskItem.classList.add('task-item');
+
+                    const taskContent = document.createElement('div');
+                    taskContent.classList.add('task-content');
+                    taskContent.innerHTML = `
                 <label class="task-text ${task.completed ? 'completed' : ''}">${task.task_text}</label>
                 <input type="checkbox" id="taskCheckbox_${task.task_id}" name="taskCheckbox" data-task-id="${task.task_id}" ${task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true' ? 'checked' : ''} disabled>
             `;
 
-            const detailsDiv = document.createElement('div');
-            detailsDiv.classList.add('task-details');
-            detailsDiv.innerHTML = `
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.classList.add('task-details');
+                    detailsDiv.innerHTML = `
                 <p><strong>Priority:</strong> ${task.priority}</p>
                 <p><strong>Date:</strong> ${task.date}</p>
                 <p><strong>Time:</strong> ${task.time}</p>
@@ -532,255 +534,255 @@ function displayTasksForDate(tasks, date) {
                 <p><strong>Reminder Time:</strong> ${task.reminder_time}</p>
                 <p><strong>CreatedAt:</strong> ${task.created_at}</p>
             `;
-            detailsDiv.style.display = 'none';
+                    detailsDiv.style.display = 'none';
 
-            taskItem.appendChild(taskContent);
-            taskItem.appendChild(detailsDiv);
-            taskContainer.appendChild(taskItem);
+                    taskItem.appendChild(taskContent);
+                    taskItem.appendChild(detailsDiv);
+                    taskContainer.appendChild(taskItem);
+                }
+            });
+
+            showMessageBox(taskContainer.innerHTML);
         }
-    });
 
-    showMessageBox(taskContainer.innerHTML);
-}
-
-function showMessageBox(content) {
-    const messageBox = document.createElement('div');
-    messageBox.classList.add('message-box-cal');
-    messageBox.innerHTML = `
+        function showMessageBox(content) {
+            const messageBox = document.createElement('div');
+            messageBox.classList.add('message-box-cal');
+            messageBox.innerHTML = `
         <div class="message-content">
             ${content}
             <button class="close-btn-cal" onclick="closeMessageBox()">&#10005;</button>
         </div>
     `;
-    document.body.appendChild(messageBox);
-}
-
-function closeMessageBox() {
-    const messageBox = document.querySelector('.message-box-cal');
-    if (messageBox) {
-        messageBox.remove();
-    }
-}
-
-function addCalendarCellClickListeners() {
-    const calendarCells = document.querySelectorAll('.calendar-table .editable');
-    calendarCells.forEach(cell => {
-        if (cell.classList.contains('highlighted')) {
-            cell.style.cursor = 'pointer';
-            cell.addEventListener('click', function () {
-                const day = this.getAttribute('data-day');
-                const month = this.getAttribute('data-month');
-                const year = this.getAttribute('data-year');
-                const collectionName = this.closest('.calendar-table').getAttribute('data-collection-name');
-                if (collectionName) {
-                    fetchTasksForDate(day, month, collectionName, year);
-                }
-            });
-        } else {
-            cell.style.cursor = 'not-allowed';
+            document.body.appendChild(messageBox);
         }
-    });
-}
 
-function generateMonthCalendarHtml(collectionName, monthIndex, year) {
-    if (!collectionName) return '';
-
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-    const startDay = new Date(year, monthIndex, 1).getDay();
-
-    let calendarHtml = `<h3>${collectionName}</h3>`;
-    calendarHtml += `<table class="calendar-table" data-collection-name="${collectionName}">`;
-    calendarHtml += '<thead><tr>';
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (const day of daysOfWeek) {
-        calendarHtml += `<th>${day}</th>`;
-    }
-    calendarHtml += '</tr></thead>';
-    calendarHtml += '<tbody><tr>';
-
-    for (let j = 0; j < startDay; j++) {
-        calendarHtml += '<td></td>';
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        if ((startDay + day - 1) % 7 === 0 && day !== 1) {
-            calendarHtml += '</tr><tr>';
-        }
-        calendarHtml += `<td class="editable" data-day="${day}" data-month="${monthIndex}" data-year="${year}">${day}</td>`;
-    }
-
-    const endDay = (startDay + daysInMonth) % 7;
-    if (endDay !== 0) {
-        for (let k = endDay; k < 7; k++) {
-            calendarHtml += '<td></td>';
-        }
-    }
-
-    calendarHtml += '</tr></tbody></table>';
-    return calendarHtml;
-}
-
-function displayCalendar(selectedCollection) {
-    const calendarContainer = document.getElementById('calendar');
-    const calendarHeader = document.getElementById('calendarHeader');
-    calendarContainer.innerHTML = ''; // Clear existing calendar
-
-    const currentYear = new Date().getFullYear();
-    const monthIndex = new Date(Date.parse(`${selectedCollection} 1, ${currentYear}`)).getMonth();
-    const monthHtml = generateMonthCalendarHtml(selectedCollection, monthIndex, currentYear);
-    calendarContainer.innerHTML = monthHtml;
-    fetchTaskDates(selectedCollection);
-}
-
-function fetchTaskCountForCurrentMonth() {
-    const collectionsDropdown = document.getElementById('collectionsDropdown');
-    const collectionName = collectionsDropdown.value;
-
-    if (!collectionName) {
-        const taskCountElement = document.getElementById('taskCount');
-        taskCountElement.innerText = 'Loading...';
-        return;
-    }
-
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const taskCount = data.tasks.length;
-        const taskCountElement = document.getElementById('taskCount');
-        taskCountElement.innerText = `Total tasks for ${collectionName}: ${taskCount}`;
-    })
-    .catch(error => {
-        console.error('Error fetching tasks:', error);
-        const taskCountElement = document.getElementById('taskCount');
-        taskCountElement.innerText = `Error fetching tasks`;
-    });
-}
-
-let pieChartInstance = null;
-
-function fetchCompletedTaskCount() {
-    const collectionsDropdown = document.getElementById('collectionsDropdown');
-    const collectionName = collectionsDropdown.value;
-
-    if (!collectionName) {
-        const completedTaskCountElement = document.getElementById('completedTaskCount');
-        completedTaskCountElement.innerText = 'Loading...';
-        return;
-    }
-
-    return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const completedTaskCount = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
-        const completedTaskCountElement = document.getElementById('completedTaskCount');
-        completedTaskCountElement.innerText = `Completed Tasks: ${completedTaskCount}`;
-        return completedTaskCount;
-    })
-    .catch(error => {
-        console.error('Error fetching completed tasks:', error);
-        const completedTaskCountElement = document.getElementById('completedTaskCount');
-        completedTaskCountElement.innerText = `Error fetching completed tasks`;
-        return 0;
-    });
-}
-
-function fetchIncompleteTaskCount() {
-    const collectionsDropdown = document.getElementById('collectionsDropdown');
-    const collectionName = collectionsDropdown.value;
-
-    if (!collectionName) {
-        const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
-        incompleteTaskCountElement.innerText = 'Loading...';
-        return;
-    }
-
-    return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const incompleteTaskCount = data.tasks.filter(task => !task.completed && localStorage.getItem(`task_${task.task_id}_checked`) !== 'true').length;
-        const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
-        incompleteTaskCountElement.innerText = `Incomplete Tasks: ${incompleteTaskCount}`;
-        return incompleteTaskCount;
-    })
-    .catch(error => {
-        console.error('Error fetching incomplete tasks:', error);
-        const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
-        incompleteTaskCountElement.innerText = `Error fetching incomplete tasks`;
-        return 0;
-    });
-}
-
-function fetchTaskStats(collectionName) {
-    if (!collectionName) {
-        return;
-    }
-
-    fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
-        method: 'GET'
-    })
-    .then(response => response.json())
-    .then(data => {
-        totalTasks = data.tasks.length;
-        completedTasks = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
-        incompleteTasks = totalTasks - completedTasks;
-        updateTaskCounts();
-        displayPieChart();
-    })
-    .catch(error => {
-        console.error('Error fetching tasks:', error);
-        updateTaskCounts('Error fetching tasks');
-    });
-}
-
-function updateTaskCounts(errorMsg = '') {
-    document.getElementById('taskCount').innerText = errorMsg || `Total tasks for ${selectedCollection}: ${totalTasks}`;
-    document.getElementById('completedTaskCount').innerText = errorMsg || `Completed Tasks: ${completedTasks}`;
-    document.getElementById('incompleteTaskCount').innerText = errorMsg || `Incomplete Tasks: ${incompleteTasks}`;
-}
-
-function displayPieChart() {
-    const ctx = document.getElementById('taskPieChart').getContext('2d');
-
-    if (pieChartInstance) {
-        pieChartInstance.destroy();
-    }
-
-    pieChartInstance = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Completed Tasks', 'Incomplete Tasks'],
-            datasets: [{
-                data: [completedTasks, incompleteTasks],
-                backgroundColor: ['#65B741', '#E72929'],
-                hoverBackgroundColor: ['#65B741', '#E72929'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'rectRounded',
-                        boxWidth: 12,
-                        boxHeight: 12
-                    },
-                    onClick: null
-                }
+        function closeMessageBox() {
+            const messageBox = document.querySelector('.message-box-cal');
+            if (messageBox) {
+                messageBox.remove();
             }
         }
-    });
-}
+
+        function addCalendarCellClickListeners() {
+            const calendarCells = document.querySelectorAll('.calendar-table .editable');
+            calendarCells.forEach(cell => {
+                if (cell.classList.contains('highlighted')) {
+                    cell.style.cursor = 'pointer';
+                    cell.addEventListener('click', function () {
+                        const day = this.getAttribute('data-day');
+                        const month = this.getAttribute('data-month');
+                        const year = this.getAttribute('data-year');
+                        const collectionName = this.closest('.calendar-table').getAttribute('data-collection-name');
+                        if (collectionName) {
+                            fetchTasksForDate(day, month, collectionName, year);
+                        }
+                    });
+                } else {
+                    cell.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        function generateMonthCalendarHtml(collectionName, monthIndex, year) {
+            if (!collectionName) return '';
+
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const startDay = new Date(year, monthIndex, 1).getDay();
+
+            let calendarHtml = `<h3>${collectionName}</h3>`;
+            calendarHtml += `<table class="calendar-table" data-collection-name="${collectionName}">`;
+            calendarHtml += '<thead><tr>';
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (const day of daysOfWeek) {
+                calendarHtml += `<th>${day}</th>`;
+            }
+            calendarHtml += '</tr></thead>';
+            calendarHtml += '<tbody><tr>';
+
+            for (let j = 0; j < startDay; j++) {
+                calendarHtml += '<td></td>';
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                if ((startDay + day - 1) % 7 === 0 && day !== 1) {
+                    calendarHtml += '</tr><tr>';
+                }
+                calendarHtml += `<td class="editable" data-day="${day}" data-month="${monthIndex}" data-year="${year}">${day}</td>`;
+            }
+
+            const endDay = (startDay + daysInMonth) % 7;
+            if (endDay !== 0) {
+                for (let k = endDay; k < 7; k++) {
+                    calendarHtml += '<td></td>';
+                }
+            }
+
+            calendarHtml += '</tr></tbody></table>';
+            return calendarHtml;
+        }
+
+        function displayCalendar(selectedCollection) {
+            const calendarContainer = document.getElementById('calendar');
+            const calendarHeader = document.getElementById('calendarHeader');
+            calendarContainer.innerHTML = ''; // Clear existing calendar
+
+            const currentYear = new Date().getFullYear();
+            const monthIndex = new Date(Date.parse(`${selectedCollection} 1, ${currentYear}`)).getMonth();
+            const monthHtml = generateMonthCalendarHtml(selectedCollection, monthIndex, currentYear);
+            calendarContainer.innerHTML = monthHtml;
+            fetchTaskDates(selectedCollection);
+        }
+
+        function fetchTaskCountForCurrentMonth() {
+            const collectionsDropdown = document.getElementById('collectionsDropdown');
+            const collectionName = collectionsDropdown.value;
+
+            if (!collectionName) {
+                const taskCountElement = document.getElementById('taskCount');
+                taskCountElement.innerText = 'Loading...';
+                return;
+            }
+
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const taskCount = data.tasks.length;
+                    const taskCountElement = document.getElementById('taskCount');
+                    taskCountElement.innerText = `Total tasks for ${collectionName}: ${taskCount}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching tasks:', error);
+                    const taskCountElement = document.getElementById('taskCount');
+                    taskCountElement.innerText = `Error fetching tasks`;
+                });
+        }
+
+        let pieChartInstance = null;
+
+        function fetchCompletedTaskCount() {
+            const collectionsDropdown = document.getElementById('collectionsDropdown');
+            const collectionName = collectionsDropdown.value;
+
+            if (!collectionName) {
+                const completedTaskCountElement = document.getElementById('completedTaskCount');
+                completedTaskCountElement.innerText = 'Loading...';
+                return;
+            }
+
+            return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const completedTaskCount = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
+                    const completedTaskCountElement = document.getElementById('completedTaskCount');
+                    completedTaskCountElement.innerText = `Completed Tasks: ${completedTaskCount}`;
+                    return completedTaskCount;
+                })
+                .catch(error => {
+                    console.error('Error fetching completed tasks:', error);
+                    const completedTaskCountElement = document.getElementById('completedTaskCount');
+                    completedTaskCountElement.innerText = `Error fetching completed tasks`;
+                    return 0;
+                });
+        }
+
+        function fetchIncompleteTaskCount() {
+            const collectionsDropdown = document.getElementById('collectionsDropdown');
+            const collectionName = collectionsDropdown.value;
+
+            if (!collectionName) {
+                const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
+                incompleteTaskCountElement.innerText = 'Loading...';
+                return;
+            }
+
+            return fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const incompleteTaskCount = data.tasks.filter(task => !task.completed && localStorage.getItem(`task_${task.task_id}_checked`) !== 'true').length;
+                    const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
+                    incompleteTaskCountElement.innerText = `Incomplete Tasks: ${incompleteTaskCount}`;
+                    return incompleteTaskCount;
+                })
+                .catch(error => {
+                    console.error('Error fetching incomplete tasks:', error);
+                    const incompleteTaskCountElement = document.getElementById('incompleteTaskCount');
+                    incompleteTaskCountElement.innerText = `Error fetching incomplete tasks`;
+                    return 0;
+                });
+        }
+
+        function fetchTaskStats(collectionName) {
+            if (!collectionName) {
+                return;
+            }
+
+            fetch(`https://task-ease-537o.onrender.com/tasks/list_tasks/?username=${username}&collection_name=${collectionName}`, {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    totalTasks = data.tasks.length;
+                    completedTasks = data.tasks.filter(task => task.completed || localStorage.getItem(`task_${task.task_id}_checked`) === 'true').length;
+                    incompleteTasks = totalTasks - completedTasks;
+                    updateTaskCounts();
+                    displayPieChart();
+                })
+                .catch(error => {
+                    console.error('Error fetching tasks:', error);
+                    updateTaskCounts('Error fetching tasks');
+                });
+        }
+
+        function updateTaskCounts(errorMsg = '') {
+            document.getElementById('taskCount').innerText = errorMsg || `Total tasks for ${selectedCollection}: ${totalTasks}`;
+            document.getElementById('completedTaskCount').innerText = errorMsg || `Completed Tasks: ${completedTasks}`;
+            document.getElementById('incompleteTaskCount').innerText = errorMsg || `Incomplete Tasks: ${incompleteTasks}`;
+        }
+
+        function displayPieChart() {
+            const ctx = document.getElementById('taskPieChart').getContext('2d');
+
+            if (pieChartInstance) {
+                pieChartInstance.destroy();
+            }
+
+            pieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Completed Tasks', 'Incomplete Tasks'],
+                    datasets: [{
+                        data: [completedTasks, incompleteTasks],
+                        backgroundColor: ['#65B741', '#E72929'],
+                        hoverBackgroundColor: ['#65B741', '#E72929'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                boxWidth: 12,
+                                boxHeight: 12
+                            },
+                            onClick: null
+                        }
+                    }
+                }
+            });
+        }
 
 
         function displayTasks(tasks) {
